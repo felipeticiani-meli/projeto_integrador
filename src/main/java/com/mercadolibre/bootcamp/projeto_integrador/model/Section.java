@@ -10,20 +10,17 @@ import javax.persistence.*;
 public class Section {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long selectionCode;
+    private long sectionCode;
 
     @ManyToOne
     @JoinColumn(name = "warehouse_code")
     @JsonIgnoreProperties("sections")
     private Warehouse warehouse;
 
-    @ManyToOne
-    @JoinColumn(name = "managerId")
-    @JsonIgnoreProperties("sections")
-    private Manager manager;
-
-    @Column(name = "category", columnDefinition = "enum('fresh', 'chilled', 'frozen')")
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private SectionCategory category;
 
     private int maxBatches;
+
+    public enum SectionCategory {FRESH, CHILLED, FROZEN;}
 }

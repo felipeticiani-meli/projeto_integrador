@@ -1,6 +1,5 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -9,18 +8,18 @@ import java.util.List;
 
 @Entity
 @Data
-public class InboudOrder {
+public class InboundOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long orderNumber;
 
     @ManyToOne
-    @JoinColumn(name = "selectionCode")
+    @JoinColumn(name = "sectionCode")
     private Section section;
 
-    @OneToMany(mappedBy = "inboudOrder")
-    @JsonIgnoreProperties("inboudOrder")
-    private List<Batch> batcheStock;
+    @OneToMany
+    @JoinColumn(name = "batch_number")
+    private List<Batch> batchStock;
 
     private LocalDate orderDate;
 }

@@ -1,10 +1,8 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Data
@@ -21,8 +19,4 @@ public class Manager {
 
     @Column(length = 60)
     private String email;
-
-    @OneToMany(mappedBy = "manager")
-    @JsonIgnoreProperties("manager")
-    private List<Section> sections;
 }

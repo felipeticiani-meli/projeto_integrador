@@ -12,12 +12,8 @@ import java.time.LocalDateTime;
 public class Batch {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long batchNuber;
-
-    @ManyToOne
-    @JoinColumn(name = "order_number")
-    @JsonIgnoreProperties("batcheStock")
-    private InboudOrder inboudOrder;
+    @Column(name = "batch_number")
+    private long batchNumber;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -37,4 +33,6 @@ public class Batch {
     private LocalDateTime manufacturingTime;
 
     private LocalDate dueDate;
+
+    private long orderNumber;
 }
