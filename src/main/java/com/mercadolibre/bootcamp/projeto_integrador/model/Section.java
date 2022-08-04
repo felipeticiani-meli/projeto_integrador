@@ -20,7 +20,12 @@ public class Section {
     @Enumerated(EnumType.STRING)
     private SectionCategory category;
 
+    public enum SectionCategory {FRESH, CHILLED, FROZEN;}
+
     private int maxBatches;
 
-    public enum SectionCategory {FRESH, CHILLED, FROZEN;}
+    @ManyToOne
+    @JoinColumn(name = "manager_id")
+    @JsonIgnoreProperties("sections")
+    private Manager manager;
 }
