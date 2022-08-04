@@ -37,5 +37,5 @@ public class Batch {
     @ManyToOne
     @JoinColumn(name = "order_number")
     @JsonIgnoreProperties("batches")
-    private long orderNumber;
+    private InboundOrder inboundOrder;
 }
