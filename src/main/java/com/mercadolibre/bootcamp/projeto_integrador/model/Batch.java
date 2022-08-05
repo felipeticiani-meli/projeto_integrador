@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -36,4 +37,7 @@ public class Batch {
     @ManyToOne
     @JoinColumn(name = "order_number")
     private InboundOrder inboundOrder;
+
+    @Column(precision = 9, scale = 2)
+    private BigDecimal productPrice;
 }

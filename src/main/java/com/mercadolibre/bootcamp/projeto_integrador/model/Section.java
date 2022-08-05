@@ -23,6 +23,8 @@ public class Section {
 
     private int maxBatches;
 
+    private int currentBatches;
+
     @ManyToOne
     @JoinColumn(name = "manager_id")
     private Manager manager;
