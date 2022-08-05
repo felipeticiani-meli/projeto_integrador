@@ -89,6 +89,7 @@ public class InboundOrderService implements IInboundOrderService {
         Batch batch = modelMapper.map(dto, Batch.class);
         if (batch.getProduct() == null)
             throw new RuntimeException("Product not found");
+        batch.setCurrentQuantity(dto.getInitialQuantity());
         return batch;
     }
 }
