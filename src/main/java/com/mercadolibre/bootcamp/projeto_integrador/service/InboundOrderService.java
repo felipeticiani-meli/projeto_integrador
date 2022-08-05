@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// TODO: Utilizar exceções customizadas
 @Service
 public class InboundOrderService implements IInboundOrderService {
 
@@ -41,9 +42,15 @@ public class InboundOrderService implements IInboundOrderService {
     @Override
     @Transactional
     public InboundOrderResponseDto create(InboundOrderRequestDto request) {
-        Optional<Section> section = sectionRepository.findById(request.getSectionCode());
-        if (section.isEmpty())
+        Optional<Section> foundSection = sectionRepository.findById(request.getSectionCode());
+        if (foundSection.isEmpty())
             throw new RuntimeException("Section not found");
+
+        var section = foundSection.get();
+
+        var totalQuantity = request.getBatchStock().stream().mapToInt(BatchRequestDto::getCurrentQuantity).sum();
+        if (section.getAvailableSlots() < totalQuantity)
+            throw new RuntimeException("Section does not have enough space");
 
         Map<Long, Product> products = productRepository
                 .findAllById(request.getBatchStock().stream().map(BatchRequestDto::getProductId).collect(Collectors.toList()))
@@ -55,10 +62,13 @@ public class InboundOrderService implements IInboundOrderService {
                 .map(dto -> mapDtoToBatch(dto, products))
                 .collect(Collectors.toList());
 
+        section.setCurrentBatches(totalQuantity);
+
         InboundOrder order = new InboundOrder();
-        order.setSection(section.get());
+        order.setSection(section);
         order.setOrderDate(LocalDate.now());
 
+        sectionRepository.save(section);
         inboundOrderRepository.save(order);
         batchRepository.saveAll(batches.stream().peek(batch -> batch.setInboundOrder(order)).collect(Collectors.toList()));
 

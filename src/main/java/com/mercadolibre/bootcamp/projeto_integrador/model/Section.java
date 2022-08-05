@@ -28,6 +28,10 @@ public class Section {
     @ManyToOne
     @JoinColumn(name = "manager_id")
     private Manager manager;
+    
+    public int getAvailableSlots() {
+        return maxBatches - currentBatches;
+    }
 
     public enum Category {
         FRESH,

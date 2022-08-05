@@ -2,6 +2,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -22,4 +23,6 @@ public class BatchRequestDto {
     private LocalDateTime manufacturingTime;
 
     private LocalDate dueDate;
+
+    private BigDecimal productPrice;
 }
