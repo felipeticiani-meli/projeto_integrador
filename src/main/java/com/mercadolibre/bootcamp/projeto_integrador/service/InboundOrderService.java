@@ -46,9 +46,9 @@ public class InboundOrderService implements IInboundOrderService {
         if (foundSection.isEmpty())
             throw new RuntimeException("Section not found");
 
-        var section = foundSection.get();
+        Section section = foundSection.get();
 
-        var batchCount = request.getBatchStock().size();
+        int batchCount = request.getBatchStock().size();
         if (section.getAvailableSlots() < batchCount)
             throw new RuntimeException("Section does not have enough space");
 
