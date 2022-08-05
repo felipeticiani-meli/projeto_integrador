@@ -1,5 +1,5 @@
 # Desafio_Quality
-API REST desenvolvida pelo grupo Beta Campers para o Desafio Quality focado em testes durante o IT Bootcamp Backend Java (wave 6). 
+API REST desenvolvida pelo grupo Beta Campers para o Projeto Integrador feito durante o IT Bootcamp Backend Java (wave 6). 
 
 ## Autores
 <a href="https://github.com/vfreitasmeli">
@@ -151,3 +151,11 @@ Atualiza entrada do pedido.
    ]
  
  </code></pre>
+ - Será validado se:<br>
+  - Todos os campos não estão vazios
+  - O código do setor, id do produto, e preço do produto são positivos
+  - Se a lista "batchStock" não está vazia
+  - Se a data de fabricação e a data de vencimento estão no formato dd-MM-yyyy
+  - Se a hora de fabricação está no formato dd-MM-yyyy HH:mm:ss
+  - Se a data e hora de fabricação e a data de vencimento são posteriores a data de criação
+
