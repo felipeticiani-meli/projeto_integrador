@@ -48,8 +48,8 @@ public class InboundOrderService implements IInboundOrderService {
 
         var section = foundSection.get();
 
-        var totalQuantity = request.getBatchStock().stream().mapToInt(BatchRequestDto::getCurrentQuantity).sum();
-        if (section.getAvailableSlots() < totalQuantity)
+        var batchCount = request.getBatchStock().size();
+        if (section.getAvailableSlots() < batchCount)
             throw new RuntimeException("Section does not have enough space");
 
         Map<Long, Product> products = productRepository
@@ -62,7 +62,7 @@ public class InboundOrderService implements IInboundOrderService {
                 .map(dto -> mapDtoToBatch(dto, products))
                 .collect(Collectors.toList());
 
-        section.setCurrentBatches(totalQuantity);
+        section.setCurrentBatches(section.getCurrentBatches() + batchCount);
 
         InboundOrder order = new InboundOrder();
         order.setSection(section);
