@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1")
 public class InboundOrderController {
@@ -16,12 +18,12 @@ public class InboundOrderController {
     private IInboundOrderService service;
 
     @PostMapping("/fresh-products/inboundorder")
-    public ResponseEntity<InboundOrderResponseDto> createInboundOrder(@RequestBody InboundOrderRequestDto inboundOrder) {
+    public ResponseEntity<InboundOrderResponseDto> createInboundOrder(@RequestBody @Valid InboundOrderRequestDto inboundOrder) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(inboundOrder));
     }
 
     @PutMapping("/fresh-products/inboundorder")
-    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestParam long orderNumber,  @RequestBody InboundOrderRequestDto inboundOrder) {
+    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestParam long orderNumber,  @RequestBody @Valid InboundOrderRequestDto inboundOrder) {
         return ResponseEntity.ok(service.update(orderNumber, inboundOrder));
     }
 }
