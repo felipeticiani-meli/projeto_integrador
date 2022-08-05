@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 @Data
 public class BatchRequestDto {
+    private long batchNumber;
+
     private long productId;
 
     private float currentTemperature;
