@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Data
 public class BatchRequestDto {
 
+    private long batchNumber;
+
     @NotNull(message = "O Id do produto deve ser informado")
     @Positive(message = "O Id do produto deve ser um número positivo")
     private long productId;
