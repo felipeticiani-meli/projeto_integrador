@@ -23,6 +23,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -99,6 +101,9 @@ public class InboundOrderControllerTest {
 
         var batchRequest = new BatchRequestDto();
         batchRequest.setProductId(product.getProductId());
+        batchRequest.setProductPrice(new BigDecimal("100.99"));
+        batchRequest.setCurrentTemperature(10.0f);
+        batchRequest.set
 
 
 //        sectionRepository.save();
