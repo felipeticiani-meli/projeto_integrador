@@ -89,7 +89,7 @@ public class InboundOrderService implements IInboundOrderService {
                 b = batchService.update(b);
             }catch (Exception e){
                 batchesInsert.add(b);
-                System.out.println("Novo registro. Não é pra atualizar");
+                //Novo registro. Não é pra atualizar
             }
         });
 
