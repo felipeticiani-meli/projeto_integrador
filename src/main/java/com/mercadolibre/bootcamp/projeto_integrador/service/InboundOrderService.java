@@ -129,7 +129,6 @@ public class InboundOrderService implements IInboundOrderService {
      * @return Objeto Section com o número de slots utilizados atualizado.
      */
     private Section sectionHasSpace(Section section, int batchCount){
-        System.out.println(section.getAvailableSlots());
         if (section.getAvailableSlots() < batchCount) {
             //TODO: InvalidBatchesSize
             throw new RuntimeException("Section does not have enough space");
