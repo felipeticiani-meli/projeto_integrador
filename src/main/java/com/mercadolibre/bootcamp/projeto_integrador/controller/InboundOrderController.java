@@ -23,7 +23,7 @@ public class InboundOrderController {
     }
 
     @PutMapping("/fresh-products/inboundorder")
-    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestBody @Valid InboundOrderRequestDto inboundOrder) {
-        return ResponseEntity.ok(service.update(inboundOrder));
+    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestParam long orderNumber,  @RequestBody @Valid InboundOrderRequestDto inboundOrder) {
+        return ResponseEntity.ok(service.update(orderNumber, inboundOrder));
     }
 }
