@@ -3,6 +3,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
@@ -11,7 +12,9 @@ import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepositor
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IWarehouseRepository;
-import lombok.SneakyThrows;
+import org.jeasy.random.EasyRandom;
+import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.FieldPredicates;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +23,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -49,65 +57,63 @@ public class InboundOrderControllerTest {
     @Autowired
     private IProductRepository productRepository;
 
-    @BeforeEach
-    void cleanAllRepositories() {
-        context.getBeansOfType(JpaRepository.class).values().forEach(CrudRepository::deleteAll);
-    }
+    @Autowired
+    private DataSource dataSource;
 
-//    {
-//        "sectionCode": 43,
-//        "batchStock": [
-//              {
-//                  "productId": 71,
-//                  "currentTemperature": 6.63,
-//                  "minimumTemperature": 76.63,
-//                  "initialQuantity": 19,
-//                  "manufacturingDate": "2030-10-14",
-//                  "manufacturingTime": "2018-11-20 09:34:28",
-//                  "dueDate": "2017-10-13",
-//                  "productPrice": 64.03
-//              }
-//        ]
-//    }
+    private static final ObjectMapper objectMapper;
 
-    @Test
-    void createInboundOrder_returnsOk_whenIsGivenAValidInput() throws Exception {
-        var warehouse = new Warehouse();
-        warehouse.setLocation("Santo Ângelo");
-
-        var manager = new Manager();
-        manager.setName("Pedro");
-        manager.setEmail("Pedro@example.com");
-        manager.setUsername("pedro");
-
-        var section = new Section();
-        section.setWarehouse(warehouse);
-        section.setManager(manager);
-        section.setMaxBatches(10);
-        section.setCategory(Section.Category.FRESH);
-        section.setCurrentBatches(0);
-
-        var product = new Product();
-        product.setCategory("Fruta");
-        product.setProductName("Maçã");
-        product.setBrand("Natureza");
-
-        warehouseRepository.save(warehouse);
-        sectionRepository.save(section);
-        managerRepository.save(manager);
-        productRepository.save(product);
-
-        var batchRequest = new BatchRequestDto();
-        batchRequest.setProductId(product.getProductId());
-
-
-//        sectionRepository.save();
-
-//        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-//                .content(asJsonString()))
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
     }
 
     static String asJsonString(final Object obj) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(obj);
+        return objectMapper.writeValueAsString(obj);
+    }
+
+    @BeforeEach
+    void cleanAllRepositories() throws SQLException {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.createStatement()
+        ) {
+            statement.execute("SET REFERENTIAL_INTEGRITY FALSE");
+            context.getBeansOfType(JpaRepository.class).values().forEach(CrudRepository::deleteAll);
+            statement.execute("SET REFERENTIAL_INTEGRITY TRUE");
+        }
+    }
+
+    @Test
+    void createInboundOrder_returnsOk_whenIsGivenAValidInput() throws Exception {
+        EasyRandomParameters parameters = new EasyRandomParameters();
+        parameters.excludeField(FieldPredicates.named("^.+(Code|Id|Number)$"));
+
+        EasyRandom generator = new EasyRandom(parameters);
+        var warehouse = generator.nextObject(Warehouse.class);
+        var manager = generator.nextObject(Manager.class);
+        var section = generator.nextObject(Section.class);
+        section.setWarehouse(warehouse);
+        section.setManager(manager);
+        var product = generator.nextObject(Product.class);
+
+        warehouseRepository.save(warehouse);
+        managerRepository.save(manager);
+        sectionRepository.save(section);
+        productRepository.save(product);
+
+        var batchRequest = generator.nextObject(BatchRequestDto.class);
+        batchRequest.setProductId(product.getProductId());
+        batchRequest.setDueDate(LocalDate.now().plusWeeks(1));
+        batchRequest.setManufacturingDate(LocalDate.now());
+        batchRequest.setManufacturingTime(LocalDateTime.now());
+
+        var requestDto = new InboundOrderRequestDto();
+        requestDto.setBatchStock(List.of(batchRequest));
+        requestDto.setSectionCode(section.getSectionCode());
+
+        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
+                .content(asJsonString(requestDto))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
     }
 }
