@@ -1,0 +1,16 @@
+package com.mercadolibre.bootcamp.projeto_integrador.exceptions;
+
+import org.springframework.http.HttpStatus;
+
+import java.time.LocalDateTime;
+
+public class MaxSizeException extends CustomException {
+    /**
+     * Throw CustomException with HTTP Status 400.
+     * @throws CustomException
+     * @param name
+     */
+    public MaxSizeException(String name) {
+        super(name, name + " does not have enough space", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+    }
+}
