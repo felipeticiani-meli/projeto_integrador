@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.InitialQuantityException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
@@ -15,15 +16,18 @@ public class BatchService implements IBatchService{
     IBatchRepository batchRepository;
 
     @Override
-    public Batch update(Batch batch) {
-        //TODO: BatchNotFound
-        Batch b = batchRepository.findById(batch.getBatchNumber())
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
-
-        batch.setCurrentQuantity(batch.getInitialQuantity() - (b.getInitialQuantity() - b.getCurrentQuantity()));
+    public Batch update(InboundOrder order, Batch batch) {
+        Optional<Batch> b = batchRepository.findById(batch.getBatchNumber());
+        if (b.isEmpty()) {
+            batch.setInboundOrder(order);
+            batch.setCurrentQuantity(batch.getInitialQuantity());
+            batchRepository.save(batch);
+            return batch;
+        }
+        int selledProducts = b.get().getInitialQuantity() - b.get().getCurrentQuantity();
+        batch.setCurrentQuantity(batch.getInitialQuantity() - selledProducts);
         if(batch.getCurrentQuantity() < 0){
-            //TODO: InvalidMaxQuantity
-            throw new RuntimeException("Current quantity invalid");
+            throw new InitialQuantityException(batch.getInitialQuantity(), selledProducts);
         }
         batchRepository.save(batch);
         return batch;
