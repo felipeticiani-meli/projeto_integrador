@@ -58,7 +58,6 @@ public class InboundOrderService implements IInboundOrderService {
             throw new NotFoundException("Section");
 
         Section section = foundSection.get();
-
         section = sectionHasSpace(section, request.getBatchStock().size());
 
         List<Batch> batches = buildBatches(request.getBatchStock());
@@ -84,7 +83,7 @@ public class InboundOrderService implements IInboundOrderService {
     @Transactional
     public InboundOrderResponseDto update(long orderNumber, InboundOrderRequestDto request) {
         InboundOrder order = inboundOrderRepository.findById(orderNumber)
-                .orElseThrow(() -> new NotFoundException("Inbound"));
+                .orElseThrow(() -> new NotFoundException("Inbound Order"));
 
         List<Batch> batches = buildBatches(request.getBatchStock());
 

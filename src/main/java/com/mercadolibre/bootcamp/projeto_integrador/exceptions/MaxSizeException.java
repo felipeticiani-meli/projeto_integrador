@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public class MaxSizeException extends CustomException {
     /**
-     * Throw CustomException with HTTP Status 400.
+     * Lança uma CustomException com HTTP Status 400.
      * @throws CustomException
      * @param name
      */

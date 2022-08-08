@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public class NotFoundException extends CustomException {
     /**
-     * Throw CustomException with HTTP Status 404.
+     * Lança uma CustomException com HTTP Status 404.
      * @throws CustomException
      * @param name
      */
