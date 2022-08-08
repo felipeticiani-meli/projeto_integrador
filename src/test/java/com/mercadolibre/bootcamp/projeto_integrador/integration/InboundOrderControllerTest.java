@@ -90,6 +90,7 @@ public class InboundOrderControllerTest {
 
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
                 .content(asJsonString(requestDto))
+                .header("Manager-Id", manager.getManagerId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
     }
@@ -126,6 +127,7 @@ public class InboundOrderControllerTest {
 
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
                 .content(asJsonString(requestDto))
+                .header("Manager-Id", manager.getManagerId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
     }
