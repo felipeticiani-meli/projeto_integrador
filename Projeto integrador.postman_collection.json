@@ -1,0 +1,267 @@
+{
+	"info": {
+		"_postman_id": "5e71c63b-ee36-458b-9da1-1c7c707d9e89",
+		"name": "Projeto integrador",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22711155"
+	},
+	"item": [
+		{
+			"name": "Successful tests",
+			"item": [
+				{
+					"name": "Insert new InboundOrder",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Exception tests",
+			"item": [
+				{
+					"name": "InboundOrder with invalid fields",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"productId\": null,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": -10.99\n        }, \n        {   \n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							],
+							"query": [
+								{
+									"key": "orderNumber",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "InboundOrder with invalid fields format",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"productId\": \"a\",\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": -10.99\n        }, \n        {   \n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							],
+							"query": [
+								{
+									"key": "orderNumber",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "InboundOrder with invalid initial quantity",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }, \n        {   \n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							],
+							"query": [
+								{
+									"key": "orderNumber",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Without ManagerId",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 4,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 8,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "With unauthorized manager",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 4,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 8,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "With incompatible products",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sectionCode\": 4,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 2,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 8,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 12,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"inboundorder"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
