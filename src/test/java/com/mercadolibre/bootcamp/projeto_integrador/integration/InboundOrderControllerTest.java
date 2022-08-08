@@ -171,8 +171,8 @@ public class InboundOrderControllerTest {
         requestDto.setSectionCode(section.getSectionCode());
 
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .contentType(MediaType.APPLICATION_JSON))
+                .content(asJsonString(requestDto))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
     }
 
