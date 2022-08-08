@@ -18,8 +18,8 @@ public class BatchService implements IBatchService{
     @Override
     public Batch update(InboundOrder order, Batch batch) {
         Optional<Batch> b = batchRepository.findById(batch.getBatchNumber());
+        batch.setInboundOrder(order);
         if (b.isEmpty()) {
-            batch.setInboundOrder(order);
             batch.setCurrentQuantity(batch.getInitialQuantity());
             batchRepository.save(batch);
             return batch;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -69,7 +71,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         BatchRequestDto batchRequest = new BatchRequestDto();
@@ -137,7 +139,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         // Generate BatchRequestDto object
@@ -153,16 +155,16 @@ public class InboundOrderControllerTest {
         // Save an InboundOrder in DB
         InboundOrder ib = new InboundOrder();
         ib.setOrderDate(LocalDate.now());
-        ib.setSection(sectionRepository.findById(1L).get());
-        inboundOrderRepository.save(ib);
+        ib.setSection(section);
+        ib = inboundOrderRepository.save(ib);
 
         // Save Batch in DB
         batch.setInboundOrder(ib);
-        batchRepository.save(batch);
+        batch = batchRepository.save(batch);
 
         // Get the current temperature from batch to make a PUT to update it (specify BatchNumber).
         float newTemperature = batchRequest.getCurrentTemperature()+1;
-        batchRequest.setBatchNumber(1L);
+        batchRequest.setBatchNumber(batch.getBatchNumber());
         batchRequest.setCurrentTemperature(newTemperature);
 
         // Create InboundOrderRequestDto to send in PUT body
@@ -171,12 +173,12 @@ public class InboundOrderControllerTest {
         requestDto.setBatchStock(List.of(batchRequest));
 
         mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
-                .param("orderNumber", "1")
+                .param("orderNumber", ""+ib.getOrderNumber())
                 .content(asJsonString(requestDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
 
-        batch = batchRepository.findById(1L).get();
+        batch = batchRepository.findById(batch.getBatchNumber()).get();
         assertThat(batch.getCurrentTemperature()).isEqualTo(newTemperature);
     }
 
@@ -189,7 +191,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         // Generate BatchRequestDto object
@@ -198,23 +200,27 @@ public class InboundOrderControllerTest {
         // Save an InboundOrder in DB
         InboundOrder ib = new InboundOrder();
         ib.setOrderDate(LocalDate.now());
-        ib.setSection(sectionRepository.findById(1L).get());
-        inboundOrderRepository.save(ib);
+        ib.setSection(section);
+        ib = inboundOrderRepository.save(ib);
 
         // Create InboundOrderRequestDto to send in PUT body
         InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
         requestDto.setSectionCode(section.getSectionCode());
         requestDto.setBatchStock(List.of(batchRequest));
 
-        mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
-                .param("orderNumber", "1")
+        MvcResult response = mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
+                .param("orderNumber", ""+ib.getOrderNumber())
                 .content(asJsonString(requestDto))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
 
-        Batch batch = batchRepository.findById(1L).get();
+        String json = response.getResponse().getContentAsString();
+        InboundOrderResponseDto responseDto = objectMapper.readValue(json, InboundOrderResponseDto.class);
+
+        Batch batch = batchRepository.findById(responseDto.getBatchStock().get(0).getBatchNumber()).get();
         assertThat(batch).isNotNull();
-        assertThat(batch.getInboundOrder().getOrderNumber()).isEqualTo(1L);
+        assertThat(batch.getInboundOrder().getOrderNumber()).isEqualTo(ib.getOrderNumber());
     }
 
     @Test
@@ -226,7 +232,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         // Generate BatchRequestDto object
@@ -235,8 +241,8 @@ public class InboundOrderControllerTest {
         // Save an InboundOrder in DB
         InboundOrder ib = new InboundOrder();
         ib.setOrderDate(LocalDate.now());
-        ib.setSection(sectionRepository.findById(1L).get());
-        inboundOrderRepository.save(ib);
+        ib.setSection(section);
+        ib = inboundOrderRepository.save(ib);
 
         // Create InboundOrderRequestDto to send in PUT body
         InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
@@ -244,7 +250,7 @@ public class InboundOrderControllerTest {
         requestDto.setBatchStock(List.of(batchRequest));
 
         mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
-                .param("orderNumber", "2")
+                .param("orderNumber", ""+ib.getOrderNumber()+1)
                 .content(asJsonString(requestDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -261,7 +267,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         // Generate BatchRequestDto object
@@ -277,8 +283,8 @@ public class InboundOrderControllerTest {
         // Save an InboundOrder in DB
         InboundOrder ib = new InboundOrder();
         ib.setOrderDate(LocalDate.now());
-        ib.setSection(sectionRepository.findById(1L).get());
-        inboundOrderRepository.save(ib);
+        ib.setSection(section);
+        ib = inboundOrderRepository.save(ib);
 
         // Save Batch in DB
         batch.setInboundOrder(ib);
@@ -290,7 +296,7 @@ public class InboundOrderControllerTest {
         requestDto.setBatchStock(List.of(batchRequest));
 
         mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
-                .param("orderNumber", "1")
+                .param("orderNumber", ""+ib.getOrderNumber())
                 .content(asJsonString(requestDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
@@ -307,7 +313,7 @@ public class InboundOrderControllerTest {
 
         warehouseRepository.save(warehouse);
         managerRepository.save(manager);
-        sectionRepository.save(section);
+        section = sectionRepository.save(section);
         productRepository.save(product);
 
         // Generate BatchRequestDto object
@@ -324,8 +330,8 @@ public class InboundOrderControllerTest {
         // Save an InboundOrder in DB
         InboundOrder ib = new InboundOrder();
         ib.setOrderDate(LocalDate.now());
-        ib.setSection(sectionRepository.findById(1L).get());
-        inboundOrderRepository.save(ib);
+        ib.setSection(section);
+        ib = inboundOrderRepository.save(ib);
 
         // Save Batch in DB
         batch.setInboundOrder(ib);
@@ -341,7 +347,7 @@ public class InboundOrderControllerTest {
         requestDto.setBatchStock(List.of(batchRequest));
 
         mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
-                .param("orderNumber", "1")
+                .param("orderNumber", ""+ib.getOrderNumber())
                 .content(asJsonString(requestDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
