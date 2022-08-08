@@ -1,4 +1,4 @@
-# Desafio_Quality
+# Projeto_Integrador
 API REST desenvolvida pelo grupo Beta Campers para o Projeto Integrador feito durante o IT Bootcamp Backend Java (wave 6). 
 
 ## Autores
