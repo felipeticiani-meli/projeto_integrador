@@ -9,6 +9,8 @@ import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +32,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -70,8 +73,8 @@ public class InboundOrderControllerTest {
     @BeforeEach
     void cleanDatabase() throws SQLException {
         try (
-                Connection connection = dataSource.getConnection();
-                Statement statement = connection.createStatement()
+            Connection connection = dataSource.getConnection();
+            Statement statement = connection.createStatement()
         ) {
             statement.execute("SET REFERENTIAL_INTEGRITY FALSE");
             ResultSet records = statement.executeQuery("SHOW TABLES");
@@ -98,11 +101,19 @@ public class InboundOrderControllerTest {
         sectionRepository.save(section);
         productRepository.save(product);
 
-        BatchRequestDto batchRequest = getBatchRequest(product);
+        BatchRequestDto batchRequest = new BatchRequestDto();
+        batchRequest.setProductId(product.getProductId());
+        batchRequest.setProductPrice(new BigDecimal("100.99"));
+        batchRequest.setCurrentTemperature(10.0f);
+        batchRequest.setMinimumTemperature(10.0f);
+        batchRequest.setDueDate(LocalDate.now().plusWeeks(1));
+        batchRequest.setManufacturingTime(LocalDateTime.now());
+        batchRequest.setManufacturingDate(LocalDate.now());
+        batchRequest.setInitialQuantity(10);
 
         InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
         requestDto.setBatchStock(List.of(batchRequest));
-        requestDto.setSectionCode(1L);
+        requestDto.setSectionCode(section.getSectionCode());
 
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
                 .content(asJsonString(requestDto))

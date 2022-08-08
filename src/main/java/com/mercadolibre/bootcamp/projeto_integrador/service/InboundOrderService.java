@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-// TODO: Utilizar exceções customizadas
 @Service
 public class InboundOrderService implements IInboundOrderService {
 
@@ -45,6 +44,11 @@ public class InboundOrderService implements IInboundOrderService {
     @Autowired
     private IBatchRepository batchRepository;
 
+    /**
+     * Método que faz a criação da InboundOrder com novos lotes
+     * @param request InboundOrderRequestDto
+     * @return InboundOrderResponseDto contendo os dados dos lotes inseridos
+     */
     @Override
     @Transactional
     public InboundOrderResponseDto create(InboundOrderRequestDto request) {
