@@ -3,6 +3,8 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.MaxSizeException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
@@ -49,7 +51,7 @@ public class InboundOrderService implements IInboundOrderService {
 
         Optional<Section> foundSection = sectionRepository.findById(request.getSectionCode());
         if (foundSection.isEmpty())
-            throw new RuntimeException("Section not found");
+            throw new NotFoundException("Section");
 
         Section section = foundSection.get();
 
@@ -76,9 +78,8 @@ public class InboundOrderService implements IInboundOrderService {
      */
     @Override
     public InboundOrderResponseDto update(long orderNumber, InboundOrderRequestDto request) {
-        //TODO: InboundOrderNotFound
         InboundOrder order = inboundOrderRepository.findById(orderNumber)
-                .orElseThrow(() -> new RuntimeException("Inbound not found"));
+                .orElseThrow(() -> new NotFoundException("Inbound"));
 
         List<Batch> batches = buildBatches(request.getBatchStock());
 
@@ -130,8 +131,7 @@ public class InboundOrderService implements IInboundOrderService {
      */
     private Section sectionHasSpace(Section section, int batchCount){
         if (section.getAvailableSlots() < batchCount) {
-            //TODO: InvalidBatchesSize
-            throw new RuntimeException("Section does not have enough space");
+            throw new MaxSizeException("Section");
         }
         section.setCurrentBatches(section.getCurrentBatches() + batchCount);
         return section;
@@ -151,7 +151,8 @@ public class InboundOrderService implements IInboundOrderService {
         });
         Batch batch = modelMapper.map(dto, Batch.class);
         if (batch.getProduct() == null)
-            throw new RuntimeException("Product not found");
+            throw new NotFoundException("Product");
+
         batch.setCurrentQuantity(dto.getInitialQuantity());
         return batch;
     }
