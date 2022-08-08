@@ -3,16 +3,12 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ManagerNotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.MaxSizeException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
-import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IInboundOrderRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.UnauthorizedManagerException;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +39,9 @@ public class InboundOrderService implements IInboundOrderService {
     @Autowired
     private IBatchRepository batchRepository;
 
+    @Autowired
+    private IManagerRepository managerRepository;
+
     /**
      * Método que faz a criação da InboundOrder com novos lotes
      * @param request InboundOrderRequestDto
@@ -51,14 +49,21 @@ public class InboundOrderService implements IInboundOrderService {
      */
     @Override
     @Transactional
-    public InboundOrderResponseDto create(InboundOrderRequestDto request) {
-
+    public InboundOrderResponseDto create(InboundOrderRequestDto request, long managerId) {
         Optional<Section> foundSection = sectionRepository.findById(request.getSectionCode());
         if (foundSection.isEmpty())
             throw new NotFoundException("Section");
 
         Section section = foundSection.get();
-        section = sectionHasSpace(section, request.getBatchStock().size());
+
+        Optional<Manager> manager = managerRepository.findById(managerId);
+        if (manager.isEmpty())
+            throw new ManagerNotFoundException(managerId);
+
+        if (section.getManager().getManagerId() != managerId)
+            throw new UnauthorizedManagerException(manager.get().getName());
+
+        sectionHasSpace(section, request.getBatchStock().size());
 
         List<Batch> batches = buildBatches(request.getBatchStock());
 
@@ -81,7 +86,7 @@ public class InboundOrderService implements IInboundOrderService {
      */
     @Override
     @Transactional
-    public InboundOrderResponseDto update(long orderNumber, InboundOrderRequestDto request) {
+    public InboundOrderResponseDto update(long orderNumber, InboundOrderRequestDto request, long managerId) {
         InboundOrder order = inboundOrderRepository.findById(orderNumber)
                 .orElseThrow(() -> new NotFoundException("Inbound Order"));
 
@@ -89,10 +94,9 @@ public class InboundOrderService implements IInboundOrderService {
 
         batches.forEach(b -> b = batchService.update(order, b));
 
-        sectionRepository.save(sectionHasSpace(order.getSection(), request.getBatchStock().stream()
+        sectionRepository.save(sectionHasSpace(order.getSection(), (int) request.getBatchStock().stream()
                 .filter(b -> b.getBatchNumber() == 0)
-                .collect(Collectors.toList())
-                .size()));
+                .count()));
 
         return new InboundOrderResponseDto() {{ setBatchStock(batches); }};
     }

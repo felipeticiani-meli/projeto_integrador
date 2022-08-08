@@ -18,12 +18,15 @@ public class InboundOrderController {
     private IInboundOrderService service;
 
     @PostMapping("/fresh-products/inboundorder")
-    public ResponseEntity<InboundOrderResponseDto> createInboundOrder(@RequestBody @Valid InboundOrderRequestDto inboundOrder) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(inboundOrder));
+    public ResponseEntity<InboundOrderResponseDto> createInboundOrder(@RequestBody @Valid InboundOrderRequestDto inboundOrder,
+                                                                      @RequestHeader("Manager-Id") long managerId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(inboundOrder, managerId));
     }
 
     @PutMapping("/fresh-products/inboundorder")
-    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestParam long orderNumber,  @RequestBody @Valid InboundOrderRequestDto inboundOrder) {
-        return ResponseEntity.ok(service.update(orderNumber, inboundOrder));
+    public ResponseEntity<InboundOrderResponseDto> updateInboundOrder(@RequestParam long orderNumber,
+                                                                      @RequestBody @Valid InboundOrderRequestDto inboundOrder,
+                                                                      @RequestHeader("Manager-Id") long managerId) {
+        return ResponseEntity.ok(service.update(orderNumber, inboundOrder, managerId));
     }
 }

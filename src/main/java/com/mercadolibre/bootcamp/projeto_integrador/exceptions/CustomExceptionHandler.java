@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,19 +32,17 @@ public class CustomExceptionHandler {
                         "An internal server error has occurred.", LocalDateTime.now()));
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<CustomError> sectionNotFoundHandler(NotFoundException exception) {
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<CustomError> handleCustomException(CustomException exception) {
         return ResponseEntity.status(exception.getStatus()).body(new CustomError(exception));
     }
 
-    @ExceptionHandler(MaxSizeException.class)
-    public ResponseEntity<CustomError> maxSizeBatchHandler(MaxSizeException exception) {
-        return ResponseEntity.status(exception.getStatus()).body(new CustomError(exception));
-    }
-
-    @ExceptionHandler(InitialQuantityException.class)
-    public ResponseEntity<CustomError> batchInitialQuantityExceptionHandler(InitialQuantityException exception) {
-        return ResponseEntity.status(exception.getStatus()).body(new CustomError(exception));
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<CustomError> handleHeaderException(MissingRequestHeaderException exception) {
+        String error = "Header " + exception.getHeaderName() + " is required";
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new CustomError(error, error, LocalDateTime.now()));
     }
 
     // Trata as exceções referente às validações (@Valid)
