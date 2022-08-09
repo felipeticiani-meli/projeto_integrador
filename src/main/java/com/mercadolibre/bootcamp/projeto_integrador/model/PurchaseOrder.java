@@ -16,7 +16,7 @@ public class PurchaseOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long purchaseId;
     private LocalDate date;
-    private boolean orderStatus;
+    private boolean isFinished;
     @ManyToOne
     @JoinColumn(name="buyer_id", nullable = false)
     private Buyer buyerId;
