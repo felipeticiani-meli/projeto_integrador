@@ -8,6 +8,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.integration.listeners.ResetDatabase;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
+import com.mercadolibre.bootcamp.projeto_integrador.util.*;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -450,21 +451,13 @@ public class InboundOrderControllerTest {
     }
 
     private BatchRequestDto getValidBatchRequest(Product product) {
-        BatchRequestDto batchRequest = new BatchRequestDto();
-        batchRequest.setCurrentTemperature(-1);
-        batchRequest.setMinimumTemperature(-1);
-        batchRequest.setManufacturingTime(LocalDateTime.now());
-        batchRequest.setManufacturingDate(LocalDate.now());
-        batchRequest.setInitialQuantity(10);
-        batchRequest.setProductPrice(new BigDecimal(10));
-        batchRequest.setDueDate(LocalDate.now().plusWeeks(1));
+        BatchRequestDto batchRequest = BatchGenerator.newBatchRequestDTO();
         batchRequest.setProductId(product.getProductId());
         return batchRequest;
     }
 
     private Warehouse getSavedWarehouse() {
-        Warehouse warehouse = new Warehouse();
-        warehouse.setLocation("New York");
+        Warehouse warehouse = WarehouseGenerator.newWarehouse();
         warehouseRepository.save(warehouse);
         return warehouse;
     }
@@ -474,9 +467,7 @@ public class InboundOrderControllerTest {
     }
 
     private Product getSavedProduct(Section.Category category) {
-        Product product = new Product();
-        product.setProductName("Apple");
-        product.setBrand("Nature");
+        Product product = ProductsGenerator.newProductFresh();
         product.setCategory(category);
         productRepository.save(product);
         return product;
@@ -487,32 +478,21 @@ public class InboundOrderControllerTest {
     }
 
     private Section getSavedSection(Warehouse warehouse, Manager manager, int maxBatches) {
-        Section section = new Section();
-        section.setCurrentBatches(1);
-        section.setCategory(Section.Category.FRESH);
-        section.setWarehouse(warehouse);
-        section.setManager(manager);
+        Section section = SectionGenerator.getSection(warehouse, manager);
         section.setMaxBatches(maxBatches);
         sectionRepository.save(section);
         return section;
     }
 
     private Section getSavedSection(Warehouse warehouse, Manager manager, Section.Category category) {
-        Section section = new Section();
-        section.setCurrentBatches(1);
+        Section section = SectionGenerator.getSection(warehouse, manager);
         section.setCategory(category);
-        section.setWarehouse(warehouse);
-        section.setManager(manager);
-        section.setMaxBatches(10);
         sectionRepository.save(section);
         return section;
     }
 
     private Manager getSavedManager() {
-        Manager manager = new Manager();
-        manager.setName("John Doe");
-        manager.setUsername("john");
-        manager.setEmail("john@example.com");
+        Manager manager = ManagerGenerator.newManager();
         managerRepository.save(manager);
         return manager;
     }
