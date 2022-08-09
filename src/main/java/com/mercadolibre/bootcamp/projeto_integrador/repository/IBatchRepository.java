@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IBatchRepository extends JpaRepository<Batch, Long> {
+    Batch findByProductId(long id);
 }
