@@ -19,8 +19,9 @@ public class Product {
     @Column(length = 45)
     private String brand;
 
-    @Column(length = 45)
-    private String category;
+    @Column(columnDefinition = Section.Category.mysqlDefinition)
+    @Enumerated(EnumType.STRING)
+    private Section.Category category;
 
     @ManyToOne
     @JoinColumn(name = "seller_id")

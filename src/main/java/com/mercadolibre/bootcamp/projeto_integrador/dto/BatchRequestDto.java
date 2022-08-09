@@ -24,6 +24,7 @@ public class BatchRequestDto {
     private float minimumTemperature;
 
     @NotNull(message = "A quantidade inicial deve ser informada")
+    @Min(value = 0, message = "A quantidade inicial deve ser maior ou igual a 0")
     private int initialQuantity;
 
     @JsonFormat(pattern = "dd-MM-yyyy")
