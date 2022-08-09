@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/v1")
 public class ProductController {
@@ -15,7 +14,9 @@ public class ProductController {
     private IProductService productService;
 
     @GetMapping("/fresh-products/list")
-    public ResponseEntity<ProductDetailsResponseDto> getProductDetails(@RequestParam long productId, @RequestHeader("Manager-Id") long managerId) {
-        return ResponseEntity.ok(productService.getProductDetails(productId, managerId));
+    public ResponseEntity<ProductDetailsResponseDto> getProductDetails(@RequestParam long productId,
+                                                                       @RequestParam(required = false) String orderBy,
+                                                                       @RequestHeader("Manager-Id") long managerId) {
+        return ResponseEntity.ok(productService.getProductDetails(productId, managerId, orderBy));
     }
 }
