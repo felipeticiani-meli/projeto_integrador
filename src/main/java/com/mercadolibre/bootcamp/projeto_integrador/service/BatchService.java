@@ -107,7 +107,7 @@ public class BatchService implements IBatchService {
     }
 
     /**
-     * Método que retorna os lotes filtrados por categoria e data de vencimento e ordenaodos por categoria
+     * Método que retorna os lotes filtrados por categoria e data de vencimento e ordenados por data de vencimento
      *
      * @param categoryCode Código da categoria
      * @param numberOfDays Número de dias mínimo até expirar os produtos
