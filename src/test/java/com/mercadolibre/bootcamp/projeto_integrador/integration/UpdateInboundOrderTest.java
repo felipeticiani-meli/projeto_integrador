@@ -1,26 +1,18 @@
 package com.mercadolibre.bootcamp.projeto_integrador.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.integration.listeners.ResetDatabase;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
-import com.mercadolibre.bootcamp.projeto_integrador.util.*;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,124 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ResetDatabase
-public class InboundOrderControllerTest {
-
-    private final ObjectMapper objectMapper;
-
-    // region repositories
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ISectionRepository sectionRepository;
-    @Autowired
-    private IWarehouseRepository warehouseRepository;
-    @Autowired
-    private IManagerRepository managerRepository;
-    @Autowired
-    private IProductRepository productRepository;
-    @Autowired
-    private IBatchRepository batchRepository;
-    @Autowired
-    private IInboundOrderRepository inboundOrderRepository;
-    // endregion
-
-    public InboundOrderControllerTest() {
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-    }
-
-    // region tests
+public class UpdateInboundOrderTest extends BaseControllerTest {
     @Test
-    void createInboundOrder_returnsOk_whenIsGivenAValidInput() throws Exception {
-        Warehouse warehouse = getSavedWarehouse();
-        Manager manager = getSavedManager();
-        Section section = getSavedSection(warehouse, manager);
-        Product product = getSavedProduct();
-
-        BatchRequestDto batchRequest = getValidBatchRequest(product);
-        InboundOrderRequestDto requestDto = getValidInboundOrderRequestDto(section, batchRequest);
-
-        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .header("Manager-Id", manager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    void createInboundOrder_returnsError_whenIsGivenAnInvalidInput() throws Exception {
-        Warehouse warehouse = getSavedWarehouse();
-        Manager manager = getSavedManager();
-        Section section = getSavedSection(warehouse, manager);
-        Product product = getSavedProduct();
-
-        System.out.println(manager.getManagerId());
-
-        BatchRequestDto batchRequest = getInvalidBatchRequestDto(product);
-        InboundOrderRequestDto requestDto = getValidInboundOrderRequestDto(section, batchRequest);
-
-        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .header("Manager-Id", manager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    void createInboundOrder_returnsError_whenIsGivenAManagerThatDoesNotHavePermission() throws Exception {
-        Warehouse warehouse = getSavedWarehouse();
-        Manager manager = getSavedManager();
-        Manager forbiddenManager = getSavedManager();
-        Section section = getSavedSection(warehouse, manager);
-        Product product = getSavedProduct();
-
-        BatchRequestDto batchRequest = getValidBatchRequest(product);
-        InboundOrderRequestDto requestDto = getValidInboundOrderRequestDto(section, batchRequest);
-
-        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .header("Manager-Id", forbiddenManager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void createInboundOrder_returnsError_whenIsNotGivenManagerIdHeader() throws Exception {
-        Warehouse warehouse = getSavedWarehouse();
-        Manager manager = getSavedManager();
-        Section section = getSavedSection(warehouse, manager);
-        Product product = getSavedProduct();
-
-        BatchRequestDto batchRequest = getValidBatchRequest(product);
-        InboundOrderRequestDto requestDto = getValidInboundOrderRequestDto(section, batchRequest);
-
-        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Header Manager-Id is required"));
-    }
-
-    @Test
-    void createInboundOrder_returnsError_whenIsGivenIncompatibleProducts() throws Exception {
-        Warehouse warehouse = getSavedWarehouse();
-        Manager manager = getSavedManager();
-        Section section = getSavedSection(warehouse, manager, Section.Category.CHILLED);
-        Product product = getSavedProduct(Section.Category.FROZEN);
-
-        BatchRequestDto batchRequest = getValidBatchRequest(product);
-        InboundOrderRequestDto requestDto = getValidInboundOrderRequestDto(section, batchRequest);
-
-        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(requestDto))
-                        .header("Manager-Id", manager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.name").value("Incompatible category"));
-    }
-
-    @Test
-    void putUpdateInboundOrder_returnCreated_whenBatchExists() throws Exception {
+    void updateInboundOrder_returnCreated_whenBatchExists() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager);
@@ -198,7 +75,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnCreated_whenBatchNotExists() throws Exception {
+    void updateInboundOrder_returnCreated_whenBatchNotExists() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager);
@@ -235,7 +112,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnCreated_whenInboundOrderIdNotExists() throws Exception {
+    void updateInboundOrder_returnCreated_whenInboundOrderIdNotExists() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager);
@@ -265,7 +142,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnCreated_whenSectionDoesNotHaveEnoughSpace() throws Exception {
+    void updateInboundOrder_returnCreated_whenSectionDoesNotHaveEnoughSpace() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager, 1);
@@ -307,7 +184,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnCreated_whenInvalidInitialQuantity() throws Exception {
+    void updateInboundOrder_returnCreated_whenInvalidInitialQuantity() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager);
@@ -354,7 +231,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnsError_whenIsGivenAManagerThatDoesNotHavePermission() throws Exception {
+    void updateInboundOrder_returnsError_whenIsGivenAManagerThatDoesNotHavePermission() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Manager forbiddenManager = getSavedManager();
@@ -381,7 +258,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnsError_whenIsNotGivenManagerIdHeader() throws Exception {
+    void updateInboundOrder_returnsError_whenIsNotGivenManagerIdHeader() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager);
@@ -399,7 +276,7 @@ public class InboundOrderControllerTest {
     }
 
     @Test
-    void putUpdateInboundOrder_returnsError_whenIsGivenIncompatibleProducts() throws Exception {
+    void updateInboundOrder_returnsError_whenIsGivenIncompatibleProducts() throws Exception {
         Warehouse warehouse = getSavedWarehouse();
         Manager manager = getSavedManager();
         Section section = getSavedSection(warehouse, manager, Section.Category.CHILLED);
@@ -425,80 +302,4 @@ public class InboundOrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.name").value("Incompatible category"));
     }
-    // endregion
-
-    // region utilities
-    private InboundOrderRequestDto getValidInboundOrderRequestDto(Section section, BatchRequestDto batchRequest) {
-        InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
-        requestDto.setBatchStock(List.of(batchRequest));
-        requestDto.setSectionCode(section.getSectionCode());
-        return requestDto;
-    }
-
-    private BatchRequestDto getInvalidBatchRequestDto(Product product) {
-        BatchRequestDto batchRequest = new BatchRequestDto();
-        batchRequest.setProductId(product.getProductId());
-
-        // Valores inválidos.
-        batchRequest.setProductPrice(new BigDecimal("-100.99"));
-        batchRequest.setCurrentTemperature(-1);
-        batchRequest.setMinimumTemperature(-1);
-        batchRequest.setDueDate(LocalDate.now().minusWeeks(1));
-        batchRequest.setManufacturingTime(LocalDateTime.now().plusDays(1));
-        batchRequest.setManufacturingDate(LocalDate.now().plusDays(1));
-        batchRequest.setInitialQuantity(-1);
-        return batchRequest;
-    }
-
-    private BatchRequestDto getValidBatchRequest(Product product) {
-        BatchRequestDto batchRequest = BatchGenerator.newBatchRequestDTO();
-        batchRequest.setProductId(product.getProductId());
-        return batchRequest;
-    }
-
-    private Warehouse getSavedWarehouse() {
-        Warehouse warehouse = WarehouseGenerator.newWarehouse();
-        warehouseRepository.save(warehouse);
-        return warehouse;
-    }
-
-    private Product getSavedProduct() {
-        return getSavedProduct(Section.Category.FRESH);
-    }
-
-    private Product getSavedProduct(Section.Category category) {
-        Product product = ProductsGenerator.newProductFresh();
-        product.setCategory(category);
-        productRepository.save(product);
-        return product;
-    }
-
-    private Section getSavedSection(Warehouse warehouse, Manager manager) {
-        return getSavedSection(warehouse, manager, 10);
-    }
-
-    private Section getSavedSection(Warehouse warehouse, Manager manager, int maxBatches) {
-        Section section = SectionGenerator.getSection(warehouse, manager);
-        section.setMaxBatches(maxBatches);
-        sectionRepository.save(section);
-        return section;
-    }
-
-    private Section getSavedSection(Warehouse warehouse, Manager manager, Section.Category category) {
-        Section section = SectionGenerator.getSection(warehouse, manager);
-        section.setCategory(category);
-        sectionRepository.save(section);
-        return section;
-    }
-
-    private Manager getSavedManager() {
-        Manager manager = ManagerGenerator.newManager();
-        managerRepository.save(manager);
-        return manager;
-    }
-
-    private String asJsonString(final Object obj) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(obj);
-    }
-    // endregion
 }
