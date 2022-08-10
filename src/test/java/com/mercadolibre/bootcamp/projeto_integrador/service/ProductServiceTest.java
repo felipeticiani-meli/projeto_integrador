@@ -89,4 +89,31 @@ class ProductServiceTest {
         assertThat(exception.getMessage()).contains("doesn't have stock");
         assertThat(exception.getMessage()).contains(product.getProductName());
     }
+
+    @Test
+    void getProductDetails_returnOrderedByBatchNumber_whenValidProduct() {
+        // Arrange
+        Product product = ProductsGenerator.newProductFresh();
+        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
+        List<Batch> batches = BatchGenerator.newBatchList();
+        when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        long maxBatchNumber = batches.stream()
+                .max(Comparator.comparing(Batch::getBatchNumber))
+                .get().getBatchNumber();
+        long minBatchNumber = batches.stream()
+                .min(Comparator.comparing(Batch::getBatchNumber))
+                .get().getBatchNumber();
+
+        // Act
+        ProductDetailsResponseDto foundProduct = productService.getProductDetails(product.getProductId(), 2, "l");
+
+        // Assert
+        assertThat(foundProduct.getProductId()).isNotNull();
+        assertEquals(foundProduct.getProductId(), product.getProductId());
+        assertEquals(foundProduct.getBatchStock().size(), batches.size());
+        assertEquals(foundProduct.getBatchStock().get(0).getBatchNumber(), minBatchNumber);
+        assertEquals(foundProduct.getBatchStock().get(foundProduct.getBatchStock().size() - 1).getBatchNumber(), maxBatchNumber);
+    }
+
+    
 }
