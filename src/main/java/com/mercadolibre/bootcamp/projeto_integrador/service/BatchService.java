@@ -10,6 +10,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,19 +84,24 @@ public class BatchService implements IBatchService {
     /**
      * Método que retorna os lotes filtrados por seção em ordem crescente da data de validade
      *
-     * @param sectionCode Código da seção
-     * @param managerId
+     * @param sectionCode  Código da seção
+     * @param numberOfDays Número de dias a partir de hoje
+     * @param managerId    ID do representante
      * @return Lista de lotes
      */
     @Override
-    public List<BatchDueDateResponseDto> findBatchBySection(long sectionCode, long managerId) {
+    public List<BatchDueDateResponseDto> findBatchBySection(long sectionCode, int numberOfDays, long managerId) {
         Section section = sectionRepository.findById(sectionCode).orElseThrow(() -> new NotFoundException("section"));
 
         Manager manager = tryFindManagerById(managerId);
         ensureManagerHasPermissionInSection(manager, section);
 
-        return batchRepository.findByInboundOrder_SectionOrderByDueDate(section)
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(numberOfDays);
+
+        return batchRepository.findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(section, startDate, endDate)
                 .stream()
+                .filter(batch -> batch.getCurrentQuantity() > 0)
                 .map(BatchDueDateResponseDto::new)
                 .collect(Collectors.toList());
     }
@@ -105,24 +111,35 @@ public class BatchService implements IBatchService {
      *
      * @param categoryCode Código da categoria
      * @param numberOfDays Número de dias mínimo até expirar os produtos
-     * @param managerId
+     * @param orderDir     Direção da ordenação
+     * @param managerId    ID do representante
      * @return Lista de lotes
      */
     @Override
     public List<BatchDueDateResponseDto> findBatchByCategoryAndDueDate(String categoryCode,
                                                                        int numberOfDays,
+                                                                       String orderDir,
                                                                        long managerId) {
-        if (numberOfDays < 0)
-            throw new BadRequestException("The number of days to expiration can't be negative");
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(numberOfDays);
+        Section.Category category = getCategory(categoryCode);
+        String orderDirection = StringUtils.trimToEmpty(orderDir);
 
         tryFindManagerById(managerId);
 
-        Section.Category category = getCategory(categoryCode);
-        LocalDate minimumExpirationDate = LocalDate.now().plusDays(numberOfDays);
+        if (numberOfDays < 0)
+            throw new BadRequestException("The number of days to expiration can't be negative");
 
-        return batchRepository.findByProduct_CategoryAndDueDateAfterOrderByProduct_Category(category, minimumExpirationDate)
-                .stream()
+        if (!StringUtils.equalsAnyIgnoreCase(orderDirection, "ASC", "DESC"))
+            throw new BadRequestException("The order direction should be either ASC or DESC");
+
+        List<Batch> batches = orderDirection.equalsIgnoreCase("ASC")
+                ? batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(category, startDate, endDate)
+                : batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateDesc(category, startDate, endDate);
+
+        return batches.stream()
                 .filter(batch -> batch.getInboundOrder().getSection().getManager().getManagerId() == managerId)
+                .filter(batch -> batch.getCurrentQuantity() > 0)
                 .map(BatchDueDateResponseDto::new)
                 .collect(Collectors.toList());
     }

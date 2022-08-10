@@ -17,16 +17,18 @@ public class BatchController {
     @Autowired
     private IBatchService batchService;
 
-    @GetMapping(value = "/fresh-products/due-date", params = "sectionCode")
+    @GetMapping(value = "/fresh-products/due-date", params = {"sectionCode", "numberOfDays"})
     public ResponseEntity<List<BatchDueDateResponseDto>> findBatchBySection(long sectionCode,
+                                                                            int numberOfDays,
                                                                             @RequestHeader("Manager-Id") long managerId) {
-        return ResponseEntity.ok(batchService.findBatchBySection(sectionCode, managerId));
+        return ResponseEntity.ok(batchService.findBatchBySection(sectionCode, numberOfDays, managerId));
     }
 
-    @GetMapping(value = "/fresh-products/due-date", params = {"category", "numberOfDays"})
+    @GetMapping(value = "/fresh-products/due-date", params = {"category", "numberOfDays", "orderDir"})
     public ResponseEntity<List<BatchDueDateResponseDto>> findBatchByCategory(String category,
                                                                              int numberOfDays,
+                                                                             String orderDir,
                                                                              @RequestHeader("Manager-Id") long managerId) {
-        return ResponseEntity.ok(batchService.findBatchByCategoryAndDueDate(category, numberOfDays, managerId));
+        return ResponseEntity.ok(batchService.findBatchByCategoryAndDueDate(category, numberOfDays, orderDir, managerId));
     }
 }
