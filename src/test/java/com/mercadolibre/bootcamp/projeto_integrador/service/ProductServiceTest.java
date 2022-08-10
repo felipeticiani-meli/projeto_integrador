@@ -2,6 +2,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDetailsResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
@@ -21,7 +22,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -53,5 +55,20 @@ class ProductServiceTest {
         assertEquals(foundProduct.getBatchStock().get(0).getBatchNumber(), batches.get(0).getBatchNumber());
         assertEquals(foundProduct.getBatchStock().get(1).getBatchNumber(), batches.get(1).getBatchNumber());
         assertEquals(foundProduct.getBatchStock().get(2).getBatchNumber(), batches.get(2).getBatchNumber());
+    }
+
+    @Test
+    void getProductDetails_returnNotFoundException_whenInvalidProduct() {
+        // Arrange
+        Product product = ProductsGenerator.newProductFresh();
+        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> productService.getProductDetails(product.getProductId(), 2, null));
+
+        // Assert
+        assertThat(exception.getMessage()).isEqualTo("There is no product with the specified id");
+        verify(batchRepository, never()).findAllByProduct(ArgumentMatchers.any());
     }
 }
