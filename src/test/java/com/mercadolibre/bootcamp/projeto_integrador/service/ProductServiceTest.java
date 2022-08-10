@@ -115,5 +115,5 @@ class ProductServiceTest {
         assertEquals(foundProduct.getBatchStock().get(foundProduct.getBatchStock().size() - 1).getBatchNumber(), maxBatchNumber);
     }
 
-    
+
 }
