@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,8 +35,9 @@ public class Batch {
 
     private LocalDate dueDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_number")
+    @JsonIgnore
     private InboundOrder inboundOrder;
 
     @Column(precision = 9, scale = 2)
