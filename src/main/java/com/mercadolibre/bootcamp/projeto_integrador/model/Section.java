@@ -1,13 +1,17 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Section {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +32,7 @@ public class Section {
     @ManyToOne
     @JoinColumn(name = "manager_id")
     private Manager manager;
-    
+
     public int getAvailableSlots() {
         return maxBatches - currentBatches;
     }
@@ -38,6 +42,6 @@ public class Section {
         CHILLED,
         FROZEN;
 
-        private static final String mysqlDefinition = "enum('FRESH', 'CHILLED', 'FROZEN')";
+        public static final String mysqlDefinition = "enum('FRESH', 'CHILLED', 'FROZEN')";
     }
 }

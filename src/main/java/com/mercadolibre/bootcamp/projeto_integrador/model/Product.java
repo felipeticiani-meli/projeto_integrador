@@ -1,13 +1,15 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,8 +21,9 @@ public class Product {
     @Column(length = 45)
     private String brand;
 
-    @Column(length = 45)
-    private String category;
+    @Column(columnDefinition = Section.Category.mysqlDefinition)
+    @Enumerated(EnumType.STRING)
+    private Section.Category category;
 
     @ManyToOne
     @JoinColumn(name = "seller_id")
