@@ -40,19 +40,9 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
         // verifica se o produto está no cadastro
-        List<Batch> foundBatches = request.getProducts()
-                .stream()
-                .map((product) -> {
-                    Product p = findProductById(product.getProductId());
-                    return checkQuantityAndDueDate(batchRepository.findByProduct(p), product, request.getOrderStatus());
-                })
-                .collect(Collectors.toList());
+        List<Batch> foundBatches = foundBatches(request.getProducts(), request.getOrderStatus());
 
-        // calcula preço total da compra
-        BigDecimal totalPrice = request.getProducts()
-                .stream()
-                .map(product -> sumTotalPrice(foundBatches, product))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = sumTotalPrice(foundBatches, request.getProducts());
 
         PurchaseOrder purchase = new PurchaseOrder(request);
         purchase.setBuyer(findBuyer(request.getBuyerId()));
@@ -71,6 +61,15 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             throw new RuntimeException("Can't update a closed order");
         }
     return null;
+    }
+
+    public List<Batch> foundBatches(List<ProductDto> products, String orderStatus) {
+        return products.stream()
+                .map((product) -> {
+                    Product p = findProductById(product.getProductId());
+                    return checkQuantityAndDueDate(batchRepository.findByProduct(p), product, orderStatus);
+                })
+                .collect(Collectors.toList());
     }
 
     public PurchaseOrder findOrder(long purchaseOrderId) {
@@ -125,13 +124,16 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     /**
      * Metodo que calcula o preço total (quantidade comprada * preço do item no estoque)
      * @param batches lista de Batch para procurar o Batch de um produto.
-     * @param product ProductDto contendo a quantidade desejada.
+     * @param products Lista de ProductDto contendo a lista de produtos.
      * @return valor BigDecimal.
      */
-    private BigDecimal sumTotalPrice(List<Batch> batches, ProductDto product) {
-        return batches
-                .stream().filter(b -> b.getProduct().getProductId() == product.getProductId())
-                .map(batch -> batch.getProductPrice().multiply(new BigDecimal(product.getQuantity())))
+    private BigDecimal sumTotalPrice(List<Batch> batches, List<ProductDto> products) {
+        return products
+                .stream()
+                .map(product -> batches
+                        .stream().filter(b -> b.getProduct().getProductId() == product.getProductId())
+                        .map(batch -> batch.getProductPrice().multiply(new BigDecimal(product.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
