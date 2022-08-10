@@ -54,6 +54,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         PurchaseOrder purchase = new PurchaseOrder(request);
         purchase.setBuyer(buyerRepository.findById(request.getBuyerId()).get());
+        purchase.setDate(LocalDate.now());
         purchaseOrderRepository.save(purchase);
         return totalPrice;
     }

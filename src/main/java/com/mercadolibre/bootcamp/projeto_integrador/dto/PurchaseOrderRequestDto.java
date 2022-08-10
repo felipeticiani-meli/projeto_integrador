@@ -11,8 +11,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class PurchaseOrderRequestDto {
-    @JsonFormat(pattern = "dd-MM-yyyy")
-    private LocalDate date;
     private long buyerId;
     private String orderStatus;
     private List<ProductDto> products;

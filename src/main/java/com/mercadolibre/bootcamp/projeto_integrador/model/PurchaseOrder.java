@@ -24,7 +24,6 @@ public class PurchaseOrder {
     private List<BatchPurchaseOrder> batchPurchaseOrders;
 
     public PurchaseOrder(PurchaseOrderRequestDto request) {
-        this.date = request.getDate();
         this.orderStatus = request.getOrderStatus();
         this.batchPurchaseOrders = getBatchPurchaseOrders();
     }
