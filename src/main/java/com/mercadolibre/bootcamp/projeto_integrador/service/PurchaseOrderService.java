@@ -60,14 +60,27 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     @Override
-    public PurchaseOrderService update(PurchaseOrderRequestDto request) {
-        return null;
+    public BigDecimal update(long purchaseOrderId, PurchaseOrderRequestDto request) {
+        PurchaseOrder foundOrder = findOrder(purchaseOrderId);
+        if (!(foundOrder.getBuyer().getBuyerId() == request.getBuyerId())) {
+            throw new RuntimeException("Wrong BuyerId");
+        }
+        if (foundOrder.getOrderStatus().equals("Closed")) {
+            throw new RuntimeException("Can't update a closed order");
+        }
+    return null;
+    }
+
+    public PurchaseOrder findOrder(long purchaseOrderId) {
+        Optional<PurchaseOrder> foundOrder = purchaseOrderRepository.findById(purchaseOrderId);
+        if(foundOrder.isEmpty()) throw new RuntimeException("Purchase order not found");
+        return foundOrder.get();
     }
 
     public void findBuyer(long buyerId) {
         Optional<Buyer> foundBuyer = buyerRepository.findById(buyerId);
         // TODO: inserir NOT FOUND EXCEPTION
-        if(foundBuyer.isEmpty()) throw new RuntimeException("Buyer not found" + buyerId);
+        if(foundBuyer.isEmpty()) throw new RuntimeException("Buyer not found");
 
     }
 

@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 
 public interface IPurchaseOrderService {
     BigDecimal create (PurchaseOrderRequestDto request);
-    PurchaseOrderService update (PurchaseOrderRequestDto request);
+    BigDecimal update (long purchaseOrderId, PurchaseOrderRequestDto request);
 }
