@@ -1,5 +1,7 @@
 package com.mercadolibre.bootcamp.projeto_integrador.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.mercadolibre.bootcamp.projeto_integrador.model.Buyer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,8 +11,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class PurchaseOrderRequestDto {
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate date;
     private long buyerId;
-    private boolean isFinished;
+    private String orderStatus;
     private List<ProductDto> products;
 }
