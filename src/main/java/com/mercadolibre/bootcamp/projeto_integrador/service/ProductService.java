@@ -4,9 +4,12 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDetailsResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.EmptyStockException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ManagerNotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
+import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,9 @@ public class ProductService implements IProductService {
     @Autowired
     private IBatchRepository batchRepository;
 
+    @Autowired
+    private IManagerRepository managerRepository;
+
     /**
      * Método que retorna os detalhes do produto.
      *
@@ -33,6 +39,7 @@ public class ProductService implements IProductService {
      */
     @Override
     public ProductDetailsResponseDto getProductDetails(long productId, long managerId, String orderBy) {
+        tryFindManagerById(managerId);
         Product product = productRepository.findById(productId).orElseThrow(() -> new NotFoundException("product"));
         List<BatchResponseDto> batches = batchRepository.findAllByProduct(product)
                 .stream()
@@ -74,5 +81,9 @@ public class ProductService implements IProductService {
             default:
                 throw new BadRequestException("Parâmetro de ordenação inválido. L: batchNumber, Q: currentQuantity, V: dueDate");
         }
+    }
+
+    private Manager tryFindManagerById(long managerId) {
+        return managerRepository.findById(managerId).orElseThrow(() -> new ManagerNotFoundException(managerId));
     }
 }
