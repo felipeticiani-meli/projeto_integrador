@@ -1,7 +1,7 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
-import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDetailsResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.EmptyStockException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
@@ -10,6 +10,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
 import com.mercadolibre.bootcamp.projeto_integrador.util.ProductsGenerator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -17,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -38,12 +40,19 @@ class ProductServiceTest {
     @Mock
     private IBatchRepository batchRepository;
 
+    private Product product;
+    private List<Batch> batches;
+
+    @BeforeEach
+    private void setup() {
+        product = ProductsGenerator.newProductFresh();
+        batches = BatchGenerator.newBatchList();
+    }
+
     @Test
     void getProductDetails_returnProductWithBatches_whenValidProduct() {
         // Arrange
-        Product product = ProductsGenerator.newProductFresh();
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
-        List<Batch> batches = BatchGenerator.newBatchList();
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
 
         // Act
@@ -61,7 +70,6 @@ class ProductServiceTest {
     @Test
     void getProductDetails_returnNotFoundException_whenInvalidProduct() {
         // Arrange
-        Product product = ProductsGenerator.newProductFresh();
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
 
         // Act
@@ -76,9 +84,7 @@ class ProductServiceTest {
     @Test
     void getProductDetails_returnEmptyStockException_whenProductWithoutBatchStock() {
         // Arrange
-        Product product = ProductsGenerator.newProductFresh();
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
-        List<Batch> batches = BatchGenerator.newBatchList();
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
 
         // Act
@@ -93,9 +99,7 @@ class ProductServiceTest {
     @Test
     void getProductDetails_returnOrderedByBatchNumber_whenValidProduct() {
         // Arrange
-        Product product = ProductsGenerator.newProductFresh();
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
-        List<Batch> batches = BatchGenerator.newBatchList();
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
         long maxBatchNumber = batches.stream()
                 .max(Comparator.comparing(Batch::getBatchNumber))
@@ -115,5 +119,63 @@ class ProductServiceTest {
         assertEquals(foundProduct.getBatchStock().get(foundProduct.getBatchStock().size() - 1).getBatchNumber(), maxBatchNumber);
     }
 
+    @Test
+    void getProductDetails_returnOrderedByCurrentQuantity_whenValidProduct() {
+        // Arrange
+        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
+        when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        long maxQuantity = batches.stream()
+                .max(Comparator.comparing(Batch::getCurrentQuantity))
+                .get().getCurrentQuantity();
+        long minQuantity = batches.stream()
+                .min(Comparator.comparing(Batch::getCurrentQuantity))
+                .get().getCurrentQuantity();
 
+        // Act
+        ProductDetailsResponseDto foundProduct = productService.getProductDetails(product.getProductId(), 2, "q");
+
+        // Assert
+        assertThat(foundProduct.getProductId()).isNotNull();
+        assertEquals(foundProduct.getProductId(), product.getProductId());
+        assertEquals(foundProduct.getBatchStock().size(), batches.size());
+        assertEquals(foundProduct.getBatchStock().get(0).getCurrentQuantity(), minQuantity);
+        assertEquals(foundProduct.getBatchStock().get(foundProduct.getBatchStock().size() - 1).getCurrentQuantity(), maxQuantity);
+    }
+
+    @Test
+    void getProductDetails_returnOrderedByDueDate_whenValidProduct() {
+        // Arrange
+        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
+        when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        LocalDate maxDueDate = batches.stream()
+                .max(Comparator.comparing(Batch::getDueDate))
+                .get().getDueDate();
+        LocalDate minDueDate = batches.stream()
+                .min(Comparator.comparing(Batch::getDueDate))
+                .get().getDueDate();
+
+        // Act
+        ProductDetailsResponseDto foundProduct = productService.getProductDetails(product.getProductId(), 2, "v");
+
+        // Assert
+        assertThat(foundProduct.getProductId()).isNotNull();
+        assertEquals(foundProduct.getProductId(), product.getProductId());
+        assertEquals(foundProduct.getBatchStock().size(), batches.size());
+        assertEquals(foundProduct.getBatchStock().get(0).getDueDate(), minDueDate);
+        assertEquals(foundProduct.getBatchStock().get(foundProduct.getBatchStock().size() - 1).getDueDate(), maxDueDate);
+    }
+
+    @Test
+    void getProductDetails_returnBadRequestException_whenInvalidOrderParameter() {
+        // Arrange
+        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
+        when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productService.getProductDetails(product.getProductId(), 2, "AB"));
+
+        // Assert
+        assertThat(exception.getMessage()).contains("Parâmetro de ordenação inválido");
+    }
 }
