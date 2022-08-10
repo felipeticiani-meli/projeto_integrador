@@ -112,6 +112,9 @@ public class BatchService implements IBatchService {
     public List<BatchDueDateResponseDto> findBatchByCategoryAndDueDate(String categoryCode,
                                                                        int numberOfDays,
                                                                        long managerId) {
+        if (numberOfDays < 0)
+            throw new BadRequestException("The number of days to expiration can't be negative");
+
         tryFindManagerById(managerId);
 
         Section.Category category = getCategory(categoryCode);
