@@ -1,8 +1,7 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -12,6 +11,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Batch {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
