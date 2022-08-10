@@ -7,8 +7,10 @@ import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
+import com.mercadolibre.bootcamp.projeto_integrador.util.ManagerGenerator;
 import com.mercadolibre.bootcamp.projeto_integrador.util.ProductsGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,9 @@ class ProductServiceTest {
     @Mock
     private IBatchRepository batchRepository;
 
+    @Mock
+    private IManagerRepository managerRepository;
+
     private Product product;
     private List<Batch> batches;
 
@@ -54,6 +59,7 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
 
         // Act
         ProductDetailsResponseDto foundProduct = productService.getProductDetails(product.getProductId(), 2, null);
@@ -71,6 +77,7 @@ class ProductServiceTest {
     void getProductDetails_returnNotFoundException_whenInvalidProduct() {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
 
         // Act
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -86,6 +93,7 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(1)));
 
         // Act
         EmptyStockException exception = assertThrows(EmptyStockException.class,
@@ -101,6 +109,8 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
+
         long maxBatchNumber = batches.stream()
                 .max(Comparator.comparing(Batch::getBatchNumber))
                 .get().getBatchNumber();
@@ -124,6 +134,8 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
+
         long maxQuantity = batches.stream()
                 .max(Comparator.comparing(Batch::getCurrentQuantity))
                 .get().getCurrentQuantity();
@@ -147,6 +159,8 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
+
         LocalDate maxDueDate = batches.stream()
                 .max(Comparator.comparing(Batch::getDueDate))
                 .get().getDueDate();
@@ -170,6 +184,7 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
         when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(ManagerGenerator.getManagerWithId(2)));
 
         // Act
         BadRequestException exception = assertThrows(BadRequestException.class,
