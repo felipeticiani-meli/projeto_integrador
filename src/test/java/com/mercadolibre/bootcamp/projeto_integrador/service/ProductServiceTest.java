@@ -2,7 +2,6 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDetailsResponseDto;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.EmptyStockException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
@@ -71,22 +70,5 @@ class ProductServiceTest {
         // Assert
         assertThat(exception.getMessage()).isEqualTo("There is no product with the specified id");
         verify(batchRepository, never()).findAllByProduct(ArgumentMatchers.any());
-    }
-
-    @Test
-    void getProductDetails_returnEmptyStockException_whenProductWithoutBatchStock() {
-        // Arrange
-        Product product = ProductsGenerator.newProductFresh();
-        when(productRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(product));
-        List<Batch> batches = BatchGenerator.newBatchList();
-        when(batchRepository.findAllByProduct(ArgumentMatchers.any())).thenReturn(batches);
-
-        // Act
-        EmptyStockException exception = assertThrows(EmptyStockException.class,
-                () -> productService.getProductDetails(product.getProductId(), 1, null));
-
-        // Assert
-        assertThat(exception.getMessage()).contains("doesn't have stock");
-        assertThat(exception.getMessage()).contains(product.getProductName());
     }
 }
