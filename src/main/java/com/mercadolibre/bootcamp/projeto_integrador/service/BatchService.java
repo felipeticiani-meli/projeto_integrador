@@ -1,18 +1,19 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchBuyerResponseDto;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.InitialQuantityException;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.*;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
+import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,10 +21,13 @@ import java.util.stream.Collectors;
 @Service
 public class BatchService implements IBatchService {
 
+    private final int minimumExpirationDays = 20;
     @Autowired
     IBatchRepository batchRepository;
-
-    private final int minimumExpirationDays = 20;
+    @Autowired
+    IManagerRepository managerRepository;
+    @Autowired
+    ISectionRepository sectionRepository;
 
     @Override
     public Batch update(InboundOrder order, Batch batch) {
@@ -77,6 +81,50 @@ public class BatchService implements IBatchService {
     }
 
     /**
+     * Método que retorna os lotes filtrados por seção em ordem crescente da data de validade
+     *
+     * @param sectionCode Código da seção
+     * @param managerId
+     * @return Lista de lotes
+     */
+    @Override
+    public List<BatchDueDateResponseDto> findBatchBySection(long sectionCode, long managerId) {
+        Section section = sectionRepository.findById(sectionCode).orElseThrow(() -> new NotFoundException("section"));
+
+        Manager manager = tryFindManagerById(managerId);
+        ensureManagerHasPermissionInSection(manager, section);
+
+        return batchRepository.findByInboundOrder_SectionOrderByDueDate(section)
+                .stream()
+                .map(BatchDueDateResponseDto::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Método que retorna os lotes filtrados por categoria e data de vencimento e ordenaodos por categoria
+     *
+     * @param categoryCode Código da categoria
+     * @param numberOfDays Número de dias mínimo até expirar os produtos
+     * @param managerId
+     * @return Lista de lotes
+     */
+    @Override
+    public List<BatchDueDateResponseDto> findBatchByCategoryAndDueDate(String categoryCode,
+                                                                       int numberOfDays,
+                                                                       long managerId) {
+        tryFindManagerById(managerId);
+
+        Section.Category category = getCategory(categoryCode);
+        LocalDate minimumExpirationDate = LocalDate.now().plusDays(numberOfDays);
+
+        return batchRepository.findByProduct_CategoryAndDueDateAfterOrderByProduct_Category(category, minimumExpirationDate)
+                .stream()
+                .filter(batch -> batch.getInboundOrder().getSection().getManager().getManagerId() == managerId)
+                .map(BatchDueDateResponseDto::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Método converte a lista de Batch para uma lista de BatchBuyerResponseDto.
      *
      * @param batches
@@ -108,5 +156,14 @@ public class BatchService implements IBatchService {
                 throw new BadRequestException("Invalid category, try again with one of the options: " +
                         "'FS', 'RF' or 'FF' for fresh, chilled or frozen products respectively.");
         }
+    }
+
+    private void ensureManagerHasPermissionInSection(Manager manager, Section section) {
+        if (section.getManager().getManagerId() != manager.getManagerId())
+            throw new UnauthorizedManagerException(manager.getName());
+    }
+
+    private Manager tryFindManagerById(long managerId) {
+        return managerRepository.findById(managerId).orElseThrow(() -> new ManagerNotFoundException(managerId));
     }
 }

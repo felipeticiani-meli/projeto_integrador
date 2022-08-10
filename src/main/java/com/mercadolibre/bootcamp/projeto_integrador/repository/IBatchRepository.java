@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface IBatchRepository extends JpaRepository<Batch, Long> {
@@ -15,4 +14,8 @@ public interface IBatchRepository extends JpaRepository<Batch, Long> {
 
     List<Batch> findByCurrentQuantityGreaterThanAndDueDateAfterAndProduct_CategoryIs(
             int minimumQuantity, LocalDate minimumExpirationDate, Section.Category category);
+
+    List<Batch> findByInboundOrder_SectionOrderByDueDate(Section section);
+
+    List<Batch> findByProduct_CategoryAndDueDateAfterOrderByProduct_Category(Section.Category category, LocalDate minimumExpirationDate);
 }
