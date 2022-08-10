@@ -22,7 +22,6 @@ public class SectionGenerator {
                 .maxBatches(8)
                 .currentBatches(7)
                 .manager(ManagerGenerator.getManagerWithId())
-                .warehouse(WarehouseGenerator.newWarehouse())
                 .build();
     }
 
@@ -33,7 +32,6 @@ public class SectionGenerator {
                 .maxBatches(10)
                 .currentBatches(0)
                 .manager(ManagerGenerator.getManagerWithId())
-                .warehouse(WarehouseGenerator.newWarehouse())
                 .build();
     }
 
@@ -44,7 +42,6 @@ public class SectionGenerator {
                 .maxBatches(20)
                 .currentBatches(20)
                 .manager(ManagerGenerator.getManagerWithId())
-                .warehouse(WarehouseGenerator.newWarehouse())
                 .build();
     }
 }

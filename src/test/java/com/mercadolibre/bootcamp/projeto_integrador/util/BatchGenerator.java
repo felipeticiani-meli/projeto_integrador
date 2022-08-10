@@ -1,8 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.util;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
-import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -50,55 +48,5 @@ public class BatchGenerator {
         );
 
         return batchRequests;
-    }
-
-    public static List<Batch> newBatchList() {
-        List<Batch> batches = new ArrayList<>();
-        batches.add(Batch.builder()
-                .batchNumber(1L)
-                .product(ProductsGenerator.newProductFresh())
-                .currentTemperature(18.7f)
-                .minimumTemperature(10.0f)
-                .initialQuantity(30)
-                .currentQuantity(30)
-                .manufacturingDate(LocalDate.now().minusDays(7))
-                .manufacturingTime(LocalDateTime.now().minusDays(7))
-                .dueDate(LocalDate.now().plusWeeks(3))
-                .inboundOrder(InboundOrderGenerator.newInboundOrder())
-                .productPrice(BigDecimal.valueOf(10.99))
-                .build());
-        batches.get(0).getInboundOrder().getSection().setSectionCode(5);
-        batches.get(0).getInboundOrder().getSection().getManager().setManagerId(2);
-        batches.add(Batch.builder()
-                .batchNumber(2L)
-                .product(ProductsGenerator.newProductFresh())
-                .currentTemperature(18.7f)
-                .minimumTemperature(10.0f)
-                .initialQuantity(20)
-                .currentQuantity(20)
-                .manufacturingDate(LocalDate.now().minusDays(7))
-                .manufacturingTime(LocalDateTime.now().minusDays(7))
-                .dueDate(LocalDate.now().plusWeeks(2))
-                .inboundOrder(InboundOrderGenerator.newInboundOrder())
-                .productPrice(BigDecimal.valueOf(10.99))
-                .build());
-        batches.get(1).getInboundOrder().getSection().setSectionCode(8);
-        batches.get(1).getInboundOrder().getSection().getManager().setManagerId(2);
-        batches.add(Batch.builder()
-                .batchNumber(3L)
-                .product(ProductsGenerator.newProductFresh())
-                .currentTemperature(18.7f)
-                .minimumTemperature(10.0f)
-                .initialQuantity(40)
-                .currentQuantity(40)
-                .manufacturingDate(LocalDate.now().minusDays(7))
-                .manufacturingTime(LocalDateTime.now().minusDays(7))
-                .dueDate(LocalDate.now().plusWeeks(1))
-                .inboundOrder(InboundOrderGenerator.newInboundOrder())
-                .productPrice(BigDecimal.valueOf(10.99))
-                .build());
-        batches.get(2).getInboundOrder().getSection().setSectionCode(2);
-        batches.get(2).getInboundOrder().getSection().getManager().setManagerId(2);
-        return batches;
     }
 }
