@@ -24,11 +24,11 @@ public class BatchService implements IBatchService {
 
     private final int minimumExpirationDays = 20;
     @Autowired
-    IBatchRepository batchRepository;
+    private IBatchRepository batchRepository;
     @Autowired
-    IManagerRepository managerRepository;
+    private IManagerRepository managerRepository;
     @Autowired
-    ISectionRepository sectionRepository;
+    private ISectionRepository sectionRepository;
 
     @Override
     public Batch update(InboundOrder order, Batch batch) {

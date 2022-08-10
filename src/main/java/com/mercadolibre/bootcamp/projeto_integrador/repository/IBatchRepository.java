@@ -3,14 +3,13 @@ package com.mercadolibre.bootcamp.projeto_integrador.repository;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface IBatchRepository extends JpaRepository<Batch, Long>, JpaSpecificationExecutor<Batch> {
+public interface IBatchRepository extends JpaRepository<Batch, Long> {
     List<Batch> findByCurrentQuantityGreaterThanAndDueDateAfter(int minimumQuantity, LocalDate minimumExpirationDate);
 
     List<Batch> findByCurrentQuantityGreaterThanAndDueDateAfterAndProduct_CategoryIs(
