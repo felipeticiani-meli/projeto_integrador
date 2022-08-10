@@ -1,0 +1,10 @@
+package com.mercadolibre.bootcamp.projeto_integrador.service;
+
+import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
+
+import java.math.BigDecimal;
+
+public interface IPurchaseOrderService {
+    BigDecimal create (PurchaseOrderRequestDto request);
+    PurchaseOrderService update (PurchaseOrderRequestDto request);
+}

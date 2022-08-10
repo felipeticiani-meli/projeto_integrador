@@ -17,6 +17,6 @@ public class Buyer {
     @Column(length = 45)
     private String username;
 
-    @OneToMany(mappedBy = "buyerId")
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL)
     private List<PurchaseOrder> purchaseOrders;
 }
