@@ -44,6 +44,6 @@ public class Batch {
     @Column(precision = 9, scale = 2)
     private BigDecimal productPrice;
 
-    @OneToMany(mappedBy = "batchPurchaseId")
+    @OneToMany(mappedBy = "batch")
     private List<BatchPurchaseOrder> batchPurchaseOrders;
 }

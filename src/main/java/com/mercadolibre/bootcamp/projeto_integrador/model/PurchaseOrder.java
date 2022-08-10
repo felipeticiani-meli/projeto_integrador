@@ -20,7 +20,7 @@ public class PurchaseOrder {
     @JoinColumn(name="buyer_id", nullable = false)
     private Buyer buyer;
 
-    @OneToMany(mappedBy = "purchaseId")
+    @OneToMany(mappedBy = "purchaseOrder")
     private List<BatchPurchaseOrder> batchPurchaseOrders;
 
     public PurchaseOrder(PurchaseOrderRequestDto request) {

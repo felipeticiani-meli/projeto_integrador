@@ -4,13 +4,11 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ProductOutOfStockException;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Buyer;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.PurchaseOrder;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,6 +35,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Autowired
     IBatchPurchaseOrderRepository batchPurchaseOrderRepository;
 
+    @Transactional
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
         // verifica se o produto está no cadastro
@@ -48,15 +47,16 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 })
                 .collect(Collectors.toList());
 
-        // calcula preço total da compra
-        BigDecimal totalPrice = request.getProducts()
-                .stream()
-                .map(product -> sumTotalPrice(foundBatches, product))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         PurchaseOrder purchase = new PurchaseOrder(request);
         purchase.setBuyer(findBuyer(request.getBuyerId()));
         purchaseOrderRepository.save(purchase);
+
+        // calcula preço total da compra
+        BigDecimal totalPrice = request.getProducts()
+                .stream()
+                .map(product -> saveBatchPurchaseOrder(foundBatches, product, purchase))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         return totalPrice;
     }
 
@@ -109,15 +109,22 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     /**
-     * Metodo que calcula o preço total (quantidade comprada * preço do item no estoque)
+     * Metodo que salva a relação nxm de Batch e PurchaseOrder e retorna o preço total (quantidade comprada * preço do item no estoque)
      * @param batches lista de Batch para procurar o Batch de um produto.
      * @param product ProductDto contendo a quantidade desejada.
+     * @param purchase objeto Purchase que será usado na relação nxm.
      * @return valor BigDecimal.
      */
-    private BigDecimal sumTotalPrice(List<Batch> batches, ProductDto product) {
-        return batches
-                .stream().filter(b -> b.getProduct().getProductId() == product.getProductId())
-                .map(batch -> batch.getProductPrice().multiply(new BigDecimal(product.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal saveBatchPurchaseOrder(List<Batch> batches, ProductDto product, PurchaseOrder purchase) {
+        Batch batch = batches.stream()
+                .filter(b -> b.getProduct().getProductId() == product.getProductId())
+                .findFirst().get();
+        BatchPurchaseOrder batchPurchaseOrder = new BatchPurchaseOrder();
+        batchPurchaseOrder.setPurchaseOrder(purchase);
+        batchPurchaseOrder.setBatch(batch);
+        batchPurchaseOrder.setQuantity(product.getQuantity());
+        batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
+        batchPurchaseOrderRepository.save(batchPurchaseOrder);
+        return  batch.getProductPrice().multiply(new BigDecimal(product.getQuantity()));
     }
 }
