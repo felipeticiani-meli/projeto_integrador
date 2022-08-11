@@ -39,31 +39,40 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
         // verifica se o produto está no cadastro
-        List<Batch> foundBatches = foundBatches(request.getProducts(), request.getOrderStatus());
+        List<Batch> foundBatches = findBatches(request.getProducts(), request.getOrderStatus());
 
         PurchaseOrder purchase = new PurchaseOrder(request);
         purchase.setBuyer(findBuyer(request.getBuyerId()));
         purchase.setDate(LocalDate.now());
         purchaseOrderRepository.save(purchase);
 
-        BigDecimal totalPrice = sumTotalPrice(foundBatches, request.getProducts(), purchase);
-
-        return totalPrice;
+        return sumTotalPrice(foundBatches, request.getProducts(), purchase);
     }
 
     @Override
-    public BigDecimal update(long purchaseOrderId, PurchaseOrderRequestDto request) {
+    public BigDecimal update(long purchaseOrderId) {
         PurchaseOrder foundOrder = findOrder(purchaseOrderId);
-        if (!(foundOrder.getBuyer().getBuyerId() == request.getBuyerId())) {
-            throw new RuntimeException("Wrong BuyerId");
-        }
+
         if (foundOrder.getOrderStatus().equals("Closed")) {
             throw new RuntimeException("Can't update a closed order");
         }
-        return null;
+        foundOrder.setOrderStatus("Closed");
+        List<ProductDto> productsList = findProductsByPurchaseOrder(foundOrder);
+        List<Batch> foundBatches = findBatches(productsList, foundOrder.getOrderStatus());
+        purchaseOrderRepository.save(foundOrder);
+
+        return sumTotalPrice(foundBatches, productsList, foundOrder);
     }
 
-    private List<Batch> foundBatches(List<ProductDto> products, String orderStatus) {
+    private List<ProductDto> findProductsByPurchaseOrder(PurchaseOrder purchaseOrder) {
+        return purchaseOrder.getBatchPurchaseOrders().stream()
+                .map(BatchPurchaseOrder::getBatch)
+                .map(batch -> new ProductDto(batch.getProduct().getProductId(), purchaseOrder.getBatchPurchaseOrders()
+                        .stream().filter(batchPurchaseOrder -> batchPurchaseOrder.getBatch().equals(batch)).findFirst().get().getQuantity()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Batch> findBatches(List<ProductDto> products, String orderStatus) {
         return products.stream()
                 .map((product) -> {
                     Product p = findProductById(product.getProductId());
@@ -100,6 +109,12 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         Optional<Product> foundProduct = productRepository.findById(productId);
         if (foundProduct.isEmpty()) throw new NotFoundException("Product");
         return foundProduct.get();
+    }
+
+    private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Batch batch) {
+        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByBatchAndPurchaseOrder(batch, purchase);
+        if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Order");
+        return foundBatchPurchaseOrder.get();
     }
 
     /**
@@ -147,12 +162,21 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             Batch batch = batches.stream()
                     .filter(b -> b.getProduct().getProductId() == product.getProductId())
                     .findFirst().get();
-            BatchPurchaseOrder batchPurchaseOrder = new BatchPurchaseOrder();
-            batchPurchaseOrder.setPurchaseOrder(purchase);
-            batchPurchaseOrder.setBatch(batch);
-            batchPurchaseOrder.setQuantity(product.getQuantity());
-            batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
-            batchPurchaseOrderRepository.save(batchPurchaseOrder);
+
+            BatchPurchaseOrder batchPurchaseOrder;
+
+            try {
+                findBatchPurchaseOrder(purchase, batch);
+            } catch(NotFoundException ex){
+                batchPurchaseOrder = new BatchPurchaseOrder();
+                batchPurchaseOrder.setPurchaseOrder(purchase);
+                batchPurchaseOrder.setBatch(batch);
+                batchPurchaseOrder.setQuantity(product.getQuantity());
+                batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
+                batchPurchaseOrderRepository.save(batchPurchaseOrder);
+            }
+
+
             return batch.getProductPrice().multiply(new BigDecimal(product.getQuantity()));
         }
     }
