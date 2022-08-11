@@ -39,26 +39,25 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Transactional
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
-        // verifica se o produto está no cadastro
-
-
-        PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(findBuyer(request.getBuyerId()), "Opened");
-        List<ProductDto> newList = request.getProducts();
+        Buyer buyer = findBuyer(request.getBuyerId());
+        PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(buyer, "Opened");
+        List<ProductDto> products = request.getProducts();
         if(purchaseOrder == null) {
-        purchaseOrder = new PurchaseOrder(request);
-        purchaseOrder.setBuyer(findBuyer(request.getBuyerId()));
-        purchaseOrder.setDate(LocalDate.now());
-        purchaseOrderRepository.save(purchaseOrder);
+            purchaseOrder = new PurchaseOrder(request);
+            purchaseOrder.setBuyer(buyer);
+            purchaseOrder.setDate(LocalDate.now());
+            purchaseOrderRepository.save(purchaseOrder);
         } else {
             List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
-            newList = Stream.concat(productList.stream(), newList.stream())
+            products = Stream.concat(productList.stream(), products.stream())
                     .collect(Collectors.groupingBy(
                             a -> a.getProductId(),
                             Collectors.summingInt(ProductDto::getQuantity)
                     )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
         }
-        List<Batch> foundBatches = findBatches(newList, request.getOrderStatus());
-        return sumTotalPrice(foundBatches, newList, purchaseOrder);
+
+        List<Batch> foundBatches = findBatches(products, request.getOrderStatus());
+        return sumTotalPrice(foundBatches, products, purchaseOrder);
     }
 
     @Override
@@ -68,6 +67,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         if (foundOrder.getOrderStatus().equals("Closed")) {
             throw new RuntimeException("Can't update a closed order");
         }
+
         foundOrder.setOrderStatus("Closed");
         List<ProductDto> productsList = findProductsDtoByPurchaseOrder(foundOrder);
         List<Batch> foundBatches = findBatches(productsList, foundOrder.getOrderStatus());
@@ -76,6 +76,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         return sumTotalPrice(foundBatches, productsList, foundOrder);
     }
 
+    /**
+     * Metodo para retornar os DTO dos produtos de uma PurchaseOrder.
+     * @param purchaseOrder objeto PurchaseOrder.
+     * @return Lista de ProductDto
+     */
     private List<ProductDto> findProductsDtoByPurchaseOrder(PurchaseOrder purchaseOrder) {
         return purchaseOrder.getBatchPurchaseOrders().stream()
                 .map(BatchPurchaseOrder::getBatch)
@@ -84,6 +89,12 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Metodo que procura um batch por produto passado.
+     * @param products lista de ProductDto contendo os ids dos produtos para procurar os batches.
+     * @param orderStatus status utilizado para saber se desconta do estoque ou não (Opened/Closed).
+     * @return Lista de Batch, um para cada produto.
+     */
     private List<Batch> findBatches(List<ProductDto> products, String orderStatus) {
         return products.stream()
                 .map((product) -> {
@@ -93,9 +104,14 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Metodo que procura por uma PurchaseOrder já existente.
+     * @param purchaseOrderId identificador da PurchaseOrder.
+     * @return objeto PurchaseOrder encontrado.
+     */
     private PurchaseOrder findOrder(long purchaseOrderId) {
         Optional<PurchaseOrder> foundOrder = purchaseOrderRepository.findById(purchaseOrderId);
-        if (foundOrder.isEmpty()) throw new RuntimeException("Purchase order not found");
+        if (foundOrder.isEmpty()) throw new NotFoundException("Purchase order");
         return foundOrder.get();
     }
 
@@ -113,7 +129,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
 
     /**
      * Metodo que verifica se produto existe e o retorna.
-     *
      * @param productId identificador do produto.
      * @return Objeto Product contendo infos do produto.
      */
@@ -123,18 +138,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         return foundProduct.get();
     }
 
-    private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Batch batch) {
-        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByBatchAndPurchaseOrder(batch, purchase);
-        if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Order");
-        return foundBatchPurchaseOrder.get();
-    }
-
     /**
      * Metodo que verifica se algum dos batches de um produto está com data valida e tem estoque.
-     *
      * @param batches     lista de Batch relacionados a um produto
      * @param product     ProductDto com informação de quantidades desejadas
-     * @param orderStatus status da compra (ABERTA ou FECHADA).
+     * @param orderStatus status da compra (Opened ou Closed).
      * @return objeto Batch que seja válido.
      */
     private Batch checkQuantityAndDueDate(List<Batch> batches, ProductDto product, String orderStatus) {
@@ -153,7 +161,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
 
     /**
      * Metodo que salva a relação nxm de Batch e PurchaseOrder e retorna o preço total (quantidade comprada * preço do item no estoque)
-     *
      * @param batches  lista de Batch para procurar o Batch de um produto.
      * @param products Lista de ProductDto contendo a lista de produtos.
      * @return valor BigDecimal.
@@ -162,32 +169,44 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         return products
                 .stream()
                 .map(product -> saveBatchPurchaseOrder(batches, product, purchase))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-        /**
-         * @param product ProductDto contendo a quantidade desejada.
-         * @param purchase objeto Purchase que será usado na relação nxm.
-         * @return valor BigDecimal.
-         */
-        private BigDecimal saveBatchPurchaseOrder(List<Batch> batches, ProductDto product, PurchaseOrder purchase){
-            Batch batch = batches.stream()
-                    .filter(b -> b.getProduct().getProductId() == product.getProductId())
-                    .findFirst().get();
+    /**
+     * Metodo que retorna o objeto intermediário da relação nxm entre Batch e PurchaseOrder.
+     * @param purchase objeto PurchaseOrder.
+     * @param batch objeto Batch
+     * @return Objeto BatchPurchaseOrder.
+     */
+    private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Batch batch) {
+        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByBatchAndPurchaseOrder(batch, purchase);
+        if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Batch PurchaseOrder");
+        return foundBatchPurchaseOrder.get();
+    }
 
-            BatchPurchaseOrder batchPurchaseOrder;
+    /**
+     * @param product ProductDto contendo a quantidade desejada.
+     * @param purchase objeto Purchase que será usado na relação nxm.
+     * @return valor BigDecimal.
+     */
+    private BigDecimal saveBatchPurchaseOrder(List<Batch> batches, ProductDto product, PurchaseOrder purchase){
+        Batch batch = batches.stream()
+                .filter(b -> b.getProduct().getProductId() == product.getProductId())
+                .findFirst().get();
 
-            try {
-                batchPurchaseOrder = findBatchPurchaseOrder(purchase, batch);
-            } catch(NotFoundException ex){
-                batchPurchaseOrder = new BatchPurchaseOrder();
-                batchPurchaseOrder.setPurchaseOrder(purchase);
-                batchPurchaseOrder.setBatch(batch);
-                batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
-            }
-            batchPurchaseOrder.setQuantity(product.getQuantity());
-            batchPurchaseOrderRepository.save(batchPurchaseOrder);
+        BatchPurchaseOrder batchPurchaseOrder;
 
-            return batch.getProductPrice().multiply(new BigDecimal(product.getQuantity()));
+        try {
+            batchPurchaseOrder = findBatchPurchaseOrder(purchase, batch);
+        } catch(NotFoundException ex){
+            batchPurchaseOrder = new BatchPurchaseOrder();
+            batchPurchaseOrder.setPurchaseOrder(purchase);
+            batchPurchaseOrder.setBatch(batch);
+            batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
         }
+        batchPurchaseOrder.setQuantity(product.getQuantity());
+        batchPurchaseOrderRepository.save(batchPurchaseOrder);
+
+        return batch.getProductPrice().multiply(new BigDecimal(product.getQuantity()));
     }
+}
