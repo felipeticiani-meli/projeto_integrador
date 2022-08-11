@@ -36,6 +36,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Autowired
     IBatchPurchaseOrderRepository batchPurchaseOrderRepository;
 
+    /**
+     *  Metodo que cria um carrinho (PurchaseOrder) novo ou insere/atualiza itens em um carrinho existente.
+     * @param request objeto PurchaseOrderRequestDto.
+     * @return valor BigDecimal do valor total em carrinho.
+     */
     @Transactional
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
@@ -60,6 +65,12 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         return sumTotalPrice(foundBatches, products, purchaseOrder);
     }
 
+    /**
+     * Metodo que atualiza o carrinho (PurchaseOrder) para fechado e efetivamente remove do estoque.
+     * @param purchaseOrderId identificador do carrinho.
+     * @return valor BigDecimal do valor total da compra.
+     */
+    @Transactional
     @Override
     public BigDecimal update(long purchaseOrderId) {
         PurchaseOrder foundOrder = findOrder(purchaseOrderId);
