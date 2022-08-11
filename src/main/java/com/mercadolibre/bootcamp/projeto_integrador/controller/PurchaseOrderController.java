@@ -1,7 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.controller;
 
-import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
-import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @Validated
@@ -27,7 +27,13 @@ public class PurchaseOrderController {
     }
 
     @PutMapping("/fresh-products/orders")
-    public ResponseEntity<BigDecimal> updateInboundOrder(@RequestParam long purchaseOrderId) {
+    public ResponseEntity<BigDecimal> updatePurchaseOrder(@RequestParam long purchaseOrderId) {
         return ResponseEntity.ok(service.update(purchaseOrderId));
+    }
+
+    @DeleteMapping("/fresh-products/orders")
+    public ResponseEntity<Void> dropProductsPurchaseOrder(@RequestParam long purchaseOrderId, @RequestBody List<ProductDto> productsDto) {
+        service.dropProducts(purchaseOrderId, productsDto);
+        return ResponseEntity.noContent().build();
     }
 }

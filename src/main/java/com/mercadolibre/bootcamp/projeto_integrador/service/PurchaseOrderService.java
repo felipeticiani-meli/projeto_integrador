@@ -92,6 +92,14 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         return sumTotalPrice(foundBatches, productsList, foundOrder);
     }
 
+    @Override
+    public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto) {
+        for(ProductDto productDto: productsDto){
+            batchPurchaseOrderRepository.delete(batchPurchaseOrderRepository
+                    .findOneByPurchaseOrderAndBatch_Product_ProductId(findOrder(purchaseOrderId), productDto.getProductId()));
+        }
+    }
+
     /**
      * Metodo para retornar os DTO dos produtos de uma PurchaseOrder.
      * @param purchaseOrder objeto PurchaseOrder.
