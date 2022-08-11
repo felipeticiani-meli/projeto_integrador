@@ -114,4 +114,17 @@ public class BaseControllerTest {
     protected String asJsonString(final Object obj) throws JsonProcessingException {
         return objectMapper.writeValueAsString(obj);
     }
+
+    protected List<BatchRequestDto> getValidListBatchRequest(Product product) {
+        List<BatchRequestDto> batches = BatchGenerator.newList2BatchRequestsDTO();
+        batches.forEach(b -> b.setProductId(product.getProductId()));
+        return batches;
+    }
+
+    protected InboundOrderRequestDto getValidInboundOrderRequestDtoWithBatchList(Section section, List<BatchRequestDto> batchRequest) {
+        InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
+        requestDto.setBatchStock(batchRequest);
+        requestDto.setSectionCode(section.getSectionCode());
+        return requestDto;
+    }
 }
