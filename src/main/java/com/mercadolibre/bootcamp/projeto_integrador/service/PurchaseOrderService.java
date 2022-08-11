@@ -85,11 +85,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         }
 
         foundOrder.setOrderStatus("Closed");
-        List<ProductDto> productsList = findProductsDtoByPurchaseOrder(foundOrder);
-        List<Batch> foundBatches = findBatches(productsList);
         purchaseOrderRepository.save(foundOrder);
 
-        return sumTotalPrice(foundBatches, productsList, foundOrder);
+        return foundOrder.getBatchPurchaseOrders().stream()
+                .map(batchPurchaseOrder -> batchPurchaseOrder.getUnitPrice().multiply(new BigDecimal(batchPurchaseOrder.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
