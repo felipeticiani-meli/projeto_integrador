@@ -4,6 +4,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ProductOutOfStockException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.PurchaseOrderAlreadyClosedException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         PurchaseOrder foundOrder = findOrder(purchaseOrderId);
 
         if (foundOrder.getOrderStatus().equals("Closed")) {
-            throw new RuntimeException("Can't update a closed order");
+            throw new PurchaseOrderAlreadyClosedException(foundOrder.getPurchaseId());
         }
 
         foundOrder.setOrderStatus("Closed");
@@ -161,7 +162,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .filter((batch) -> batch.getDueDate().minus(21, ChronoUnit.DAYS).compareTo(LocalDate.now()) > 0)
                 .filter((batch) -> batch.getCurrentQuantity() >= product.getQuantity())
                 .findFirst()
-                .orElseThrow(() -> new ProductOutOfStockException("Product with id " + product.getProductId()));
+                .orElseThrow(() -> new ProductOutOfStockException(product.getProductId()));
 
         if (orderStatus.equals("Closed")) {
             int result = batchProduct.getCurrentQuantity() - product.getQuantity();
