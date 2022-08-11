@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -110,12 +111,22 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @return Lista de Batch, um para cada produto.
      */
     private List<Batch> findBatches(List<ProductDto> products) {
-        return products.stream()
+        List<Long> productsIds = new ArrayList<>();
+        List<Batch> batches = products.stream()
                 .map((product) -> {
                     Product p = findProductById(product.getProductId());
-                    return checkQuantityAndDueDate(batchRepository.findByProduct(p), product);
+                    try {
+                        return checkQuantityAndDueDate(batchRepository.findByProduct(p), product);
+                    }catch (ProductOutOfStockException ex){
+                        productsIds.add(product.getProductId());
+                    }
+                    return null;
                 })
                 .collect(Collectors.toList());
+        if(!productsIds.isEmpty()){
+            throw new ProductOutOfStockException(productsIds);
+        }
+        return batches;
     }
 
     /**
