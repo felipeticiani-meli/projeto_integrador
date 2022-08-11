@@ -55,6 +55,9 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             purchaseOrderRepository.save(purchaseOrder);
         } else {
             List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
+            purchaseOrder.getBatchPurchaseOrders().stream()
+                    .forEach(batchPurchaseOrder -> batchPurchaseOrder.getBatch()
+                            .setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity()));
             products = Stream.concat(productList.stream(), products.stream())
                     .collect(Collectors.groupingBy(
                             a -> a.getProductId(),
@@ -62,7 +65,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                     )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
         }
 
-        List<Batch> foundBatches = findBatches(products, request.getOrderStatus());
+        List<Batch> foundBatches = findBatches(products);
         return sumTotalPrice(foundBatches, products, purchaseOrder);
     }
 
@@ -82,7 +85,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
 
         foundOrder.setOrderStatus("Closed");
         List<ProductDto> productsList = findProductsDtoByPurchaseOrder(foundOrder);
-        List<Batch> foundBatches = findBatches(productsList, foundOrder.getOrderStatus());
+        List<Batch> foundBatches = findBatches(productsList);
         purchaseOrderRepository.save(foundOrder);
 
         return sumTotalPrice(foundBatches, productsList, foundOrder);
@@ -104,14 +107,13 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     /**
      * Metodo que procura um batch por produto passado.
      * @param products lista de ProductDto contendo os ids dos produtos para procurar os batches.
-     * @param orderStatus status utilizado para saber se desconta do estoque ou não (Opened/Closed).
      * @return Lista de Batch, um para cada produto.
      */
-    private List<Batch> findBatches(List<ProductDto> products, String orderStatus) {
+    private List<Batch> findBatches(List<ProductDto> products) {
         return products.stream()
                 .map((product) -> {
                     Product p = findProductById(product.getProductId());
-                    return checkQuantityAndDueDate(batchRepository.findByProduct(p), product, orderStatus);
+                    return checkQuantityAndDueDate(batchRepository.findByProduct(p), product);
                 })
                 .collect(Collectors.toList());
     }
@@ -129,7 +131,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
 
     /**
      * Metodo que verifica se comprador existe e o retorna.
-     *
      * @param buyerId identificador do comprador.
      * @return Objeto Buyer contendo infos do comprador.
      */
@@ -154,20 +155,17 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * Metodo que verifica se algum dos batches de um produto está com data valida e tem estoque.
      * @param batches     lista de Batch relacionados a um produto
      * @param product     ProductDto com informação de quantidades desejadas
-     * @param orderStatus status da compra (Opened ou Closed).
      * @return objeto Batch que seja válido.
      */
-    private Batch checkQuantityAndDueDate(List<Batch> batches, ProductDto product, String orderStatus) {
+    private Batch checkQuantityAndDueDate(List<Batch> batches, ProductDto product) {
         Batch batchProduct = batches.stream()
                 .filter((batch) -> batch.getDueDate().minus(21, ChronoUnit.DAYS).compareTo(LocalDate.now()) > 0)
                 .filter((batch) -> batch.getCurrentQuantity() >= product.getQuantity())
                 .findFirst()
                 .orElseThrow(() -> new ProductOutOfStockException(product.getProductId()));
 
-        if (orderStatus.equals("Closed")) {
-            int result = batchProduct.getCurrentQuantity() - product.getQuantity();
-            batchProduct.setCurrentQuantity(result);
-        }
+        int result = batchProduct.getCurrentQuantity() - product.getQuantity();
+        batchProduct.setCurrentQuantity(result);
         return batchProduct;
     }
 
