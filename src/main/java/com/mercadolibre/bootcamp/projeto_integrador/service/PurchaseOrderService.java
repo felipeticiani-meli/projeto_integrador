@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class PurchaseOrderService implements IPurchaseOrderService {
@@ -39,14 +40,25 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
         // verifica se o produto está no cadastro
-        List<Batch> foundBatches = findBatches(request.getProducts(), request.getOrderStatus());
 
-        PurchaseOrder purchase = new PurchaseOrder(request);
-        purchase.setBuyer(findBuyer(request.getBuyerId()));
-        purchase.setDate(LocalDate.now());
-        purchaseOrderRepository.save(purchase);
 
-        return sumTotalPrice(foundBatches, request.getProducts(), purchase);
+        PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(findBuyer(request.getBuyerId()), "Opened");
+        List<ProductDto> newList = request.getProducts();
+        if(purchaseOrder == null) {
+        purchaseOrder = new PurchaseOrder(request);
+        purchaseOrder.setBuyer(findBuyer(request.getBuyerId()));
+        purchaseOrder.setDate(LocalDate.now());
+        purchaseOrderRepository.save(purchaseOrder);
+        } else {
+            List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
+            newList = Stream.concat(productList.stream(), newList.stream())
+                    .collect(Collectors.groupingBy(
+                            a -> a.getProductId(),
+                            Collectors.summingInt(ProductDto::getQuantity)
+                    )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
+        }
+        List<Batch> foundBatches = findBatches(newList, request.getOrderStatus());
+        return sumTotalPrice(foundBatches, newList, purchaseOrder);
     }
 
     @Override
@@ -57,14 +69,14 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             throw new RuntimeException("Can't update a closed order");
         }
         foundOrder.setOrderStatus("Closed");
-        List<ProductDto> productsList = findProductsByPurchaseOrder(foundOrder);
+        List<ProductDto> productsList = findProductsDtoByPurchaseOrder(foundOrder);
         List<Batch> foundBatches = findBatches(productsList, foundOrder.getOrderStatus());
         purchaseOrderRepository.save(foundOrder);
 
         return sumTotalPrice(foundBatches, productsList, foundOrder);
     }
 
-    private List<ProductDto> findProductsByPurchaseOrder(PurchaseOrder purchaseOrder) {
+    private List<ProductDto> findProductsDtoByPurchaseOrder(PurchaseOrder purchaseOrder) {
         return purchaseOrder.getBatchPurchaseOrders().stream()
                 .map(BatchPurchaseOrder::getBatch)
                 .map(batch -> new ProductDto(batch.getProduct().getProductId(), purchaseOrder.getBatchPurchaseOrders()
@@ -166,16 +178,15 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             BatchPurchaseOrder batchPurchaseOrder;
 
             try {
-                findBatchPurchaseOrder(purchase, batch);
+                batchPurchaseOrder = findBatchPurchaseOrder(purchase, batch);
             } catch(NotFoundException ex){
                 batchPurchaseOrder = new BatchPurchaseOrder();
                 batchPurchaseOrder.setPurchaseOrder(purchase);
                 batchPurchaseOrder.setBatch(batch);
-                batchPurchaseOrder.setQuantity(product.getQuantity());
                 batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
-                batchPurchaseOrderRepository.save(batchPurchaseOrder);
             }
-
+            batchPurchaseOrder.setQuantity(product.getQuantity());
+            batchPurchaseOrderRepository.save(batchPurchaseOrder);
 
             return batch.getProductPrice().multiply(new BigDecimal(product.getQuantity()));
         }
