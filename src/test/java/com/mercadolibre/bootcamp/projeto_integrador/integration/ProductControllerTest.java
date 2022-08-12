@@ -144,4 +144,15 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.batchStock[0].dueDate").value(closestDueDate))
                 .andExpect(jsonPath("$.batchStock[1].dueDate").value(farthestDueDate));
     }
+
+    @Test
+    void getProductDetails_returnBadRequestException_whenInvalidOrderParameter() throws Exception {
+        service.create(validInboundOrderRequest, manager.getManagerId());
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(product.getProductId()))
+                        .param("orderBy", "ab")
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Parâmetro de ordenação inválido")));
+    }
 }
