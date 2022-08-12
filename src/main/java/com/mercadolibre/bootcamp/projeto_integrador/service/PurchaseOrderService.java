@@ -46,27 +46,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request) {
         Buyer buyer = findBuyer(request.getBuyerId());
-        PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(buyer, "Opened");
+        PurchaseOrder purchaseOrder = getPurchase(buyer, request.getOrderStatus());
         List<ProductDto> products = request.getProducts();
-        if(purchaseOrder == null) {
-            purchaseOrder = new PurchaseOrder(request);
-            purchaseOrder.setBuyer(buyer);
-            purchaseOrder.setDate(LocalDate.now());
-            purchaseOrderRepository.save(purchaseOrder);
-        } else {
-            // Produtos que já estavam no carrinho.
-            List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
-            // É retornada a quantidade extraida (pela compra) do estoque de cada batch,
-            // pois como as quantidades são agregadas, não deve-se retirar novamente o que já foi retirado.
-            purchaseOrder.getBatchPurchaseOrders().stream()
-                    .forEach(batchPurchaseOrder -> batchPurchaseOrder.getBatch()
-                            .setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity()));
-            // Agrupamento pelo id do produto, somando-se as quantidades.
-            products = Stream.concat(productList.stream(), products.stream())
-                    .collect(Collectors.groupingBy(
-                            a -> a.getProductId(),
-                            Collectors.summingInt(ProductDto::getQuantity)
-                    )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
+
+        if(purchaseOrder.getBatchPurchaseOrders() != null) {
+            products = groupNewProductsWithOldOnes(purchaseOrder, products);
         }
 
         return getPurchaseInStock(products, purchaseOrder);
@@ -107,6 +91,28 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     /**
+     * Metodo que agrupa produtos (soma-se a quantidade dos mesmos identificadores) adicionados no carrinho com os já adicionados anteriormente.
+     * @param purchaseOrder objeto PurchaseOrder.
+     * @param products lista dos produtos que podem ser adicionados ao carrinho (PurchaseOrder).
+     * @return Lista de ProductDto agrupados os mesmos identificadores dos produtos com as quantidades somadas.
+     */
+    private List<ProductDto> groupNewProductsWithOldOnes(PurchaseOrder purchaseOrder, List<ProductDto> products) {
+        // Produtos que já estavam no carrinho.
+        List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
+        // É retornada a quantidade extraida (pela compra) do estoque de cada batch,
+        // pois como as quantidades são agregadas, não deve-se retirar novamente o que já foi retirado.
+        purchaseOrder.getBatchPurchaseOrders().stream()
+                .forEach(batchPurchaseOrder -> batchPurchaseOrder.getBatch()
+                        .setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity()));
+        // Agrupamento pelo id do produto, somando-se as quantidades.
+        return Stream.concat(productList.stream(), products.stream())
+                .collect(Collectors.groupingBy(
+                        a -> a.getProductId(),
+                        Collectors.summingInt(ProductDto::getQuantity)
+                )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
+    }
+
+    /**
      * Metodo que devolve ao estoque a quantidade que estava no carrinho.
      * @param batchPurchaseOrder objeto da tabela nxm BatchPurchaseOrder.
      * @return o próprio objeto BatchPurchaseOrder.
@@ -114,6 +120,23 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     private BatchPurchaseOrder returnToStock(BatchPurchaseOrder batchPurchaseOrder) {
         batchPurchaseOrder.getBatch().setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity());
         return batchPurchaseOrder;
+    }
+
+    /**
+     * Metodo que verifica se o comprador ter uma PurchaseOrder aberta, senão cria uma nova.
+     * @param buyer objeto do comprador.
+     * @param orderStatus status da compra (Opened/Closed).
+     * @return objeto PurchaseOrder encontrado ou criado.
+     */
+    private PurchaseOrder getPurchase(Buyer buyer, String orderStatus){
+        PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(buyer, "Opened");
+        if(purchaseOrder == null) {
+            purchaseOrder = new PurchaseOrder(orderStatus);
+            purchaseOrder.setBuyer(buyer);
+            purchaseOrder.setDate(LocalDate.now());
+            purchaseOrderRepository.save(purchaseOrder);
+        }
+        return purchaseOrder;
     }
 
     /**
@@ -190,9 +213,8 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .filter(p -> p.getProductId() == batch.getProduct().getProductId())
                 .findFirst().get();
 
-        BatchPurchaseOrder batchPurchaseOrder;
-
         // Se já existir a tabela nxm entre um batch e uma purchase ela só é atualizada com a nova quantidade.
+        BatchPurchaseOrder batchPurchaseOrder;
         try {
             batchPurchaseOrder = findBatchPurchaseOrder(purchase, batch);
         } catch(NotFoundException ex){
