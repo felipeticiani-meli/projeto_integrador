@@ -136,6 +136,12 @@ public class BaseControllerTest {
         return batch;
     }
 
+    protected Batch getSavedBatch(LocalDate dueDate, Product product, InboundOrder order) {
+        Batch batch = BatchGenerator.newBatch(dueDate, product, order);
+        batchRepository.save(batch);
+        return batch;
+    }
+
     protected String asJsonString(final Object obj) throws JsonProcessingException {
         return objectMapper.writeValueAsString(obj);
     }

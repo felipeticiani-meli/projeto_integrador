@@ -70,6 +70,12 @@ public class BatchGenerator {
         return batch;
     }
 
+    public static Batch newBatch(LocalDate dueDate, Product product, InboundOrder order) {
+        Batch batch = newBatch(product, order);
+        batch.setDueDate(dueDate);
+        return batch;
+    }
+
     public static List<Batch> newBatchList() {
         List<Batch> batches = new ArrayList<>();
         batches.add(Batch.builder()
