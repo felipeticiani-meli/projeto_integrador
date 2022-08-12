@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,5 +58,15 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
                 .andExpect(jsonPath("$.batchStock[0].batchNumber").value(smallerBatchNumber))
                 .andExpect(jsonPath("$.batchStock[1].batchNumber").value(biggerBatchNumber));
+    }
+
+    @Test
+    void getProductDetails_returnNotFoundException_whenInvalidProduct() throws Exception {
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(0))
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.name", containsString("not found")))
+                .andExpect(jsonPath("$.message", containsString("There is no product with the specified id")));
     }
 }
