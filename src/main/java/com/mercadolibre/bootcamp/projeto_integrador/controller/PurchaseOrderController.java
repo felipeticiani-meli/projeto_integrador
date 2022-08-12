@@ -1,6 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.controller;
 
-import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +36,8 @@ public class PurchaseOrderController {
     @DeleteMapping("/fresh-products/orders")
     public ResponseEntity<Void> dropProductsPurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
                                                           @RequestParam long purchaseOrderId,
-                                                          @RequestBody List<ProductDto> productsDto) {
-        service.dropProducts(purchaseOrderId, productsDto, buyerId);
+                                                          @RequestBody BatchPurchaseOrderRequestDto batchDto) {
+        service.dropProducts(purchaseOrderId, batchDto, buyerId);
         return ResponseEntity.noContent().build();
     }
 }

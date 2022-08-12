@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDto {
+public class BatchPurchaseOrderRequestDto {
 
-    @NotNull(message = "O id do produto não pode estar vazio")
-    @Positive(message = "O id do produto deve ser um número positivo")
-    private long productId;
+    @NotNull(message = "O id do batch não pode estar vazio")
+    @Positive(message = "O id do batch deve ser um número positivo")
+    private long batchNumber;
 
     @NotNull(message = "A quantidade do produto deve ser informada")
     @Min(value = 0, message = "A quantidade do produto deve ser maior ou igual a 0")

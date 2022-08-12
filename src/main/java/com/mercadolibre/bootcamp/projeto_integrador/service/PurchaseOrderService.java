@@ -1,9 +1,9 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
-import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ProductOutOfStockException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BatchOutOfStockException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.PurchaseOrderAlreadyClosedException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.UnauthorizedBuyerException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
@@ -14,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,17 +41,13 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param request objeto PurchaseOrderRequestDto.
      * @return valor BigDecimal do valor total em carrinho.
      */
+    @Transactional
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request, long buyerId) {
         Buyer buyer = findBuyer(buyerId);
         PurchaseOrder purchaseOrder = getPurchase(buyer, request.getOrderStatus());
-        List<ProductDto> products = request.getProducts();
 
-        if(purchaseOrder.getBatchPurchaseOrders() != null) {
-            products = groupNewProductsWithOldOnes(purchaseOrder, products);
-        }
-
-        return getPurchaseInStock(products, purchaseOrder);
+        return getPurchaseInStock(request.getBatch(), purchaseOrder);
     }
 
     /**
@@ -78,35 +71,13 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     /**
      * Metodo que remove produto do carrinho.
      * @param purchaseOrderId identificador do carrinho (PurchaseOrder).
-     * @param productsDto identificadores dos produtos.
+     * @param batchDto objeto BatchPurchaseOrderRequestDto com id do batch a ser retirado do carrinho.
+     * @param buyerId identificador do comprador.
      */
+    @Transactional
     @Override
-    public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto, long buyerId) {
-        for(ProductDto productDto: productsDto){
-            batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId, buyerId), findProductById(productDto.getProductId()))));
-        }
-    }
-
-    /**
-     * Metodo que agrupa produtos (soma-se a quantidade dos mesmos identificadores) adicionados no carrinho com os já adicionados anteriormente.
-     * @param purchaseOrder objeto PurchaseOrder.
-     * @param products lista dos produtos que podem ser adicionados ao carrinho (PurchaseOrder).
-     * @return Lista de ProductDto agrupados os mesmos identificadores dos produtos com as quantidades somadas.
-     */
-    private List<ProductDto> groupNewProductsWithOldOnes(PurchaseOrder purchaseOrder, List<ProductDto> products) {
-        // Produtos que já estavam no carrinho.
-        List<ProductDto> productList = findProductsDtoByPurchaseOrder(purchaseOrder);
-        // É retornada a quantidade extraida (pela compra) do estoque de cada batch,
-        // pois como as quantidades são agregadas, não deve-se retirar novamente o que já foi retirado.
-        purchaseOrder.getBatchPurchaseOrders().stream()
-                .forEach(batchPurchaseOrder -> batchPurchaseOrder.getBatch()
-                        .setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity()));
-        // Agrupamento pelo id do produto, somando-se as quantidades.
-        return Stream.concat(productList.stream(), products.stream())
-                .collect(Collectors.groupingBy(
-                        a -> a.getProductId(),
-                        Collectors.summingInt(ProductDto::getQuantity)
-                )).entrySet().stream().map(a -> new ProductDto(a.getKey(), a.getValue())).collect(Collectors.toList());
+    public void dropProducts(long purchaseOrderId, BatchPurchaseOrderRequestDto batchDto, long buyerId) {
+        batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId, buyerId), findBatchById(batchDto.getBatchNumber()))));
     }
 
     /**
@@ -137,78 +108,41 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     /**
-     * Metodo que procura um batch por produto passado.
-     * @param products lista de ProductDto contendo os ids dos produtos para procurar os batches.
-     * @param purchase objeto PurchaseOrder sendo a compra atual para vincular os produtos.
+     * Metodo que procura um batch e desconta quantidade.
+     * @param batchDto atchPurchaseOrderRequestDto contendo o id do batch.
+     * @param purchase objeto PurchaseOrder sendo a compra atual para vincular o batch.
      * @return Lista de Batch, um para cada produto.
      */
-    private BigDecimal getPurchaseInStock(List<ProductDto> products, PurchaseOrder purchase) {
-        List<Long> productsIds = new ArrayList<>();
-        // Procura por algum batch disponivel para cada produto.
-        List<Batch> batches = products.stream()
-                .map((product) -> {
-                    Product p = findProductById(product.getProductId());
-                    try {
-                        return checkQuantityAndDueDate(batchRepository.findByProduct(p), product);
-                    }catch (ProductOutOfStockException ex){
-                        // Se não encontrar nenhum batch para o produto, produto será adicionado ao erro retornado para o usuário.
-                        productsIds.add(product.getProductId());
-                    }
-                    return null;
-                })
-                .filter(batch -> batch != null)
-                .collect(Collectors.toList());
+    private BigDecimal getPurchaseInStock(BatchPurchaseOrderRequestDto batchDto, PurchaseOrder purchase) {
+        Optional<Batch> batchFound = batchRepository.findOneByBatchNumberAndCurrentQuantityGreaterThanEqualAndDueDateAfterOrderByDueDate(batchDto.getBatchNumber(),
+                batchDto.getQuantity(), LocalDate.now().plusDays(21));
 
-        BigDecimal price = sumTotalPrice(batches, products, purchase);
-        if(!productsIds.isEmpty()){
-            throw new ProductOutOfStockException(productsIds);
-        }
-        return price;
+        if(batchFound.isEmpty()) throw new BatchOutOfStockException(batchDto.getBatchNumber());
+
+        batchFound.get().setCurrentQuantity(batchFound.get().getCurrentQuantity() - batchDto.getQuantity());
+
+        purchase = saveBatchPurchaseOrder(batchFound.get(), batchDto, purchase);
+        return sumTotalPrice(purchase);
     }
 
     /**
-     * Metodo que verifica se algum dos batches de um produto está com data valida e tem estoque.
-     * @param batches     lista de Batch relacionados a um produto
-     * @param product     ProductDto com informação de quantidades desejadas
-     * @return objeto Batch que seja válido.
-     */
-    Batch checkQuantityAndDueDate(List<Batch> batches, ProductDto product) {
-        Batch batchProduct = batches.stream()
-                .filter((batch) -> batch.getDueDate().minus(21, ChronoUnit.DAYS).compareTo(LocalDate.now()) > 0)
-                .filter((batch) -> batch.getCurrentQuantity() >= product.getQuantity())
-                .findFirst()
-                .orElseThrow(() -> new ProductOutOfStockException(product.getProductId()));
-
-        int result = batchProduct.getCurrentQuantity() - product.getQuantity();
-        batchProduct.setCurrentQuantity(result);
-        return batchProduct;
-    }
-
-    /**
-     * Metodo que salva a relação nxm de Batch e PurchaseOrder e retorna o preço total (quantidade comprada * preço do item no estoque)
-     * @param batches  lista de Batch para procurar o Batch de um produto.
-     * @param products Lista de ProductDto contendo a lista de produtos.
+     * Metodo que calcula e retorna o preço total (quantidade comprada * preço do item no estoque)
+     * @param purchase objeto PurchaseOrder para pegar todos os batches relacionados.
      * @return valor BigDecimal.
      */
-    private BigDecimal sumTotalPrice(List<Batch> batches, List<ProductDto> products, PurchaseOrder purchase) {
-        return batches
-                .stream()
-                .map(batch -> saveBatchPurchaseOrder(batch, products, purchase))
+    private BigDecimal sumTotalPrice(PurchaseOrder purchase) {
+        return purchase.getBatchPurchaseOrders().stream()
+                .map(batchPurchaseOrder -> batchPurchaseOrder.getUnitPrice().multiply(new BigDecimal(batchPurchaseOrder.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     /**
      * Metodo cria uma nova tabela nxm ou atualiza a já existente.
-     * @param batch objeto Batch disponivel para descontar quantidade do produto.
-     * @param products lista de ProductDto.
+     * @param batch objeto Batch disponivel para descontar quantidade do batch.
+     * @param batchDto objeto BatchPurchaseOrderRequestDto.
      * @param purchase objeto Purchase que será usado na relação nxm.
-     * @return valor BigDecimal do valor total de cada item comprado.
      */
-    private BigDecimal saveBatchPurchaseOrder(Batch batch, List<ProductDto> products, PurchaseOrder purchase){
-        ProductDto productDto = products.stream()
-                .filter(p -> p.getProductId() == batch.getProduct().getProductId())
-                .findFirst().get();
-
+    private PurchaseOrder saveBatchPurchaseOrder(Batch batch, BatchPurchaseOrderRequestDto batchDto, PurchaseOrder purchase){
         // Se já existir a tabela nxm entre um batch e uma purchase ela só é atualizada com a nova quantidade.
         BatchPurchaseOrder batchPurchaseOrder;
         try {
@@ -219,28 +153,22 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             batchPurchaseOrder.setBatch(batch);
             batchPurchaseOrder.setUnitPrice(batch.getProductPrice());
         }
-        batchPurchaseOrder.setQuantity(productDto.getQuantity());
+        batchPurchaseOrder.setQuantity(batchPurchaseOrder.getQuantity()+batchDto.getQuantity());
         batchPurchaseOrderRepository.save(batchPurchaseOrder);
 
-        return batch.getProductPrice().multiply(new BigDecimal(productDto.getQuantity()));
+        if(purchase.getBatchPurchaseOrders() == null){
+            purchase.setBatchPurchaseOrders(new ArrayList<>());
+        }
+        if(!purchase.getBatchPurchaseOrders().contains(batchPurchaseOrder)){
+            purchase.getBatchPurchaseOrders().add(batchPurchaseOrder);
+        }
+        return purchase;
     }
 
     /**
-     * Metodo para retornar os DTO dos produtos de uma PurchaseOrder.
-     * @param purchaseOrder objeto PurchaseOrder.
-     * @return Lista de ProductDto
-     */
-    private List<ProductDto> findProductsDtoByPurchaseOrder(PurchaseOrder purchaseOrder) {
-        return purchaseOrder.getBatchPurchaseOrders().stream()
-                .map(BatchPurchaseOrder::getBatch)
-                .map(batch -> new ProductDto(batch.getProduct().getProductId(), purchaseOrder.getBatchPurchaseOrders()
-                        .stream().filter(batchPurchaseOrder -> batchPurchaseOrder.getBatch().equals(batch)).findFirst().get().getQuantity()))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Metodo que procura por uma PurchaseOrder já existente.
+     * Metodo que procura por uma PurchaseOrder já existente para o cliente.
      * @param purchaseOrderId identificador da PurchaseOrder.
+     * @param buyerId identificador do comprador.
      * @return objeto PurchaseOrder encontrado.
      */
     private PurchaseOrder findOrder(long purchaseOrderId, long buyerId) {
@@ -263,14 +191,14 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     /**
-     * Metodo que verifica se produto existe e o retorna.
-     * @param productId identificador do produto.
-     * @return Objeto Product contendo infos do produto.
+     * Metodo que verifica se batch existe e o retorna.
+     * @param batchNumber identificador do batch.
+     * @return Objeto Batch contendo infos do batch.
      */
-    private Product findProductById(long productId) {
-        Optional<Product> foundProduct = productRepository.findById(productId);
-        if (foundProduct.isEmpty()) throw new NotFoundException("Product");
-        return foundProduct.get();
+    private Batch findBatchById(long batchNumber) {
+        Optional<Batch> foundBatch = batchRepository.findById(batchNumber);
+        if (foundBatch.isEmpty()) throw new NotFoundException("Batch");
+        return foundBatch.get();
     }
 
     /**
@@ -282,12 +210,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Batch batch) {
         Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByPurchaseOrderAndBatch(purchase, batch);
         if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Batch PurchaseOrder");
-        return foundBatchPurchaseOrder.get();
-    }
-
-    private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Product product) {
-        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByPurchaseOrderAndBatch_Product(purchase, product);
-        if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Product in the PurchaseOrder");
         return foundBatchPurchaseOrder.get();
     }
 }
