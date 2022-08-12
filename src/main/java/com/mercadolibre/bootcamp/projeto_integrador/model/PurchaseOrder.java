@@ -23,8 +23,7 @@ public class PurchaseOrder {
     @OneToMany(mappedBy = "purchaseOrder")
     private List<BatchPurchaseOrder> batchPurchaseOrders;
 
-    public PurchaseOrder(String orderStatus) {
-        this.orderStatus = orderStatus;
+    public PurchaseOrder() {
         this.batchPurchaseOrders = getBatchPurchaseOrders();
     }
 }

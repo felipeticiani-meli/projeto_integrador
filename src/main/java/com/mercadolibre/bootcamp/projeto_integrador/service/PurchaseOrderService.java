@@ -45,7 +45,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public BigDecimal create(PurchaseOrderRequestDto request, long buyerId) {
         Buyer buyer = findBuyer(buyerId);
-        PurchaseOrder purchaseOrder = getPurchase(buyer, request.getOrderStatus());
+        PurchaseOrder purchaseOrder = getPurchaseOrder(buyer, request.getOrderStatus());
 
         return getPurchaseInStock(request.getBatch(), purchaseOrder);
     }
@@ -58,7 +58,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Transactional
     @Override
     public BigDecimal update(long purchaseOrderId, long buyerId) {
-        PurchaseOrder foundOrder = findOrder(purchaseOrderId, buyerId);
+        PurchaseOrder foundOrder = findPurchaseOrder(purchaseOrderId, buyerId);
 
         foundOrder.setOrderStatus("Closed");
         purchaseOrderRepository.save(foundOrder);
@@ -77,7 +77,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Transactional
     @Override
     public void dropProducts(long purchaseOrderId, BatchPurchaseOrderRequestDto batchDto, long buyerId) {
-        batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId, buyerId), findBatchById(batchDto.getBatchNumber()))));
+        batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findPurchaseOrder(purchaseOrderId, buyerId), findBatchById(batchDto.getBatchNumber()))));
     }
 
     /**
@@ -96,14 +96,15 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param orderStatus status da compra (Opened/Closed).
      * @return objeto PurchaseOrder encontrado ou criado.
      */
-    private PurchaseOrder getPurchase(Buyer buyer, String orderStatus){
+    private PurchaseOrder getPurchaseOrder(Buyer buyer, String orderStatus){
         PurchaseOrder purchaseOrder = purchaseOrderRepository.findOnePurchaseOrderByBuyerAndOrderStatusIsLike(buyer, "Opened");
         if(purchaseOrder == null) {
-            purchaseOrder = new PurchaseOrder(orderStatus);
+            purchaseOrder = new PurchaseOrder();
             purchaseOrder.setBuyer(buyer);
             purchaseOrder.setDate(LocalDate.now());
             purchaseOrderRepository.save(purchaseOrder);
         }
+        purchaseOrder.setOrderStatus(orderStatus);
         return purchaseOrder;
     }
 
@@ -171,7 +172,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param buyerId identificador do comprador.
      * @return objeto PurchaseOrder encontrado.
      */
-    private PurchaseOrder findOrder(long purchaseOrderId, long buyerId) {
+    private PurchaseOrder findPurchaseOrder(long purchaseOrderId, long buyerId) {
         Optional<PurchaseOrder> foundOrder = purchaseOrderRepository.findById(purchaseOrderId);
         if (foundOrder.isEmpty()) throw new NotFoundException("Purchase order");
         if(foundOrder.get().getBuyer().getBuyerId() != buyerId) throw new UnauthorizedBuyerException(buyerId, purchaseOrderId);
