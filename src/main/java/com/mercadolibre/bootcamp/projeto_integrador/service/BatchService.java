@@ -2,20 +2,15 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchBuyerResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.*;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
-import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
-
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +24,16 @@ import java.util.stream.Stream;
 @Service
 public class BatchService implements IBatchService {
     private final int minimumExpirationDays = 20;
-    
+
     @Autowired
     private IBatchRepository batchRepository;
     @Autowired
     private IManagerRepository managerRepository;
     @Autowired
     private ISectionRepository sectionRepository;
+
+    @Autowired
+    private IProductService productService;
 
     /**
      * Metodo que faz o map do DTO de Batch para um objeto Batch e já lhe atribui um produto (que deve existir).
@@ -59,7 +57,15 @@ public class BatchService implements IBatchService {
     }
 
     @Override
-    public List<Batch> updateAll(InboundOrder order, List<BatchRequestDto> batchesDto, Map<Long, Product> products) {
+    public List<Batch> createAll(List<BatchRequestDto> batchesDto, InboundOrder order) {
+        Map<Long, Product> products = productService.getProductMap(batchesDto);
+        List<Batch> batches = buildBatchesForCreate(batchesDto, order, products);
+        return batchRepository.saveAll(batches);
+    }
+
+    @Override
+    public List<Batch> updateAll(InboundOrder order, List<BatchRequestDto> batchesDto) {
+        Map<Long, Product> products = productService.getProductMap(batchesDto);
         List<Long> batchNumbersToUpdate = batchesDto.stream()
                 .map(BatchRequestDto::getBatchNumber)
                 .filter(batchNumber -> batchNumber > 0L)
@@ -86,7 +92,9 @@ public class BatchService implements IBatchService {
                 .map(dto -> mapDtoToBatch(dto, order, products))
                 .peek(batch -> batch.setCurrentQuantity(batch.getInitialQuantity()));
 
-        return Stream.concat(updatedBatches, batchesToInsert).collect(Collectors.toList());
+        List<Batch> batchesToSave = Stream.concat(updatedBatches, batchesToInsert).collect(Collectors.toList());
+
+        return batchRepository.saveAll(batchesToSave);
     }
 
     @Override
@@ -141,6 +149,19 @@ public class BatchService implements IBatchService {
             throw new NotFoundException("Products", "There are no products in stock in the requested category");
         }
         return mapListBatchToListDto(batches);
+    }
+
+    /**
+     * Metodo que monta uma lista de Batch, dada lista de DTO da requisição.
+     * @param batchesDto lista de BatchRequestDto.
+     * @return List<Batch> pronto.
+     */
+    private List<Batch> buildBatchesForCreate(List<BatchRequestDto> batchesDto, InboundOrder order, Map<Long, Product> products){
+        return batchesDto.stream()
+                .map(dto -> mapDtoToBatch(dto, order, products))
+                .peek(batch -> batch.setBatchNumber(0L))
+                .peek(batch -> batch.setCurrentQuantity(batch.getInitialQuantity()))
+                .collect(Collectors.toList());
     }
 
     private Batch updateBatchFromDto(Batch batch, BatchRequestDto dto, Map<Long, Product> products) {
@@ -240,10 +261,9 @@ public class BatchService implements IBatchService {
      * @return List<BatchBuyerResponseDto>
      */
     private List<BatchBuyerResponseDto> mapListBatchToListDto(List<Batch> batches) {
-        List<BatchBuyerResponseDto> batchBuyerResponse = batches.stream()
-                .map(batch -> new BatchBuyerResponseDto(batch))
+        return batches.stream()
+                .map(BatchBuyerResponseDto::new)
                 .collect(Collectors.toList());
-        return batchBuyerResponse;
     }
 
     /**

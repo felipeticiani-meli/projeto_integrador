@@ -5,13 +5,13 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IBatchService {
-    List<Batch> updateAll(InboundOrder order, List<BatchRequestDto> batchesDto, Map<Long, Product> products);
+    List<Batch> createAll(List<BatchRequestDto> batchesDto, InboundOrder order);
+
+    List<Batch> updateAll(InboundOrder order, List<BatchRequestDto> batchesDto);
 
     @Deprecated
     Batch update(InboundOrder order, Batch batch);

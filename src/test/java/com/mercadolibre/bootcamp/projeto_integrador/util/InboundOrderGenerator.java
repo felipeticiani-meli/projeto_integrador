@@ -14,11 +14,11 @@ public class InboundOrderGenerator {
                 .build();
     }
 
-    public static InboundOrder newInboundOrder() {
+    public static InboundOrder newFreshInboundOrder() {
         return InboundOrder.builder()
-                .orderNumber(1)
+                .orderNumber(1l)
                 .orderDate(LocalDate.now().minusDays(1))
-                .section(SectionGenerator.getSectionWith10SlotsAvailable())
+                .section(SectionGenerator.getFreshSectionWith10SlotsAvailable())
                 .build();
     }
 }
