@@ -132,6 +132,177 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get product sum on warehouse",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/warehouse?productId=7",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"warehouse"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id order by batchNumber",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=l",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "2"
+								},
+								{
+									"key": "orderBy",
+									"value": "l"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id order by dueDate",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=v",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "2"
+								},
+								{
+									"key": "orderBy",
+									"value": "v"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id order by currentQuantity",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=q",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "2"
+								},
+								{
+									"key": "orderBy",
+									"value": "q"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -401,6 +572,103 @@
 								{
 									"key": "category",
 									"value": "FS"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get invalid product sum on warehouse",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/warehouse?productId=90",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"warehouse"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "90"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id (empty stock for this manager)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all batches by product id with invalid order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=ab",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"v1",
+								"fresh-products",
+								"list"
+							],
+							"query": [
+								{
+									"key": "productId",
+									"value": "2"
+								},
+								{
+									"key": "orderBy",
+									"value": "ab"
 								}
 							]
 						}
