@@ -21,13 +21,13 @@ insert into section values (null, 'FROZEN', 0, 10, 3, 3);
 insert into section values (null, 'FRESH', 0, 5, 4, 3);
 insert into section values (null, 'CHILLED', 0, 5, 4, 3);
 
-insert into section values (null, 'FROZEN', 0, 10, 5, 4);
-insert into section values (null, 'FRESH', 0, 10, 5, 4);
-insert into section values (null, 'CHILLED', 0, 10, 5, 4);
+insert into section values (null, 'FROZEN', 0, 10, 5, 3);
+insert into section values (null, 'FRESH', 0, 10, 5, 3);
+insert into section values (null, 'CHILLED', 0, 10, 5, 2);
 
-insert into section values (null, 'FROZEN', 0, 5, 6, 5);
-insert into section values (null, 'FRESH', 0, 5, 6, 5);
-insert into section values (null, 'CHILLED', 0, 5, 6, 5);
+insert into section values (null, 'FROZEN', 0, 5, 6, 2);
+insert into section values (null, 'FRESH', 0, 5, 6, 1);
+insert into section values (null, 'CHILLED', 0, 5, 6, 1);
 
 insert into seller values (null, 'maria@example.com', 'Maria', 'maria');
 insert into seller values (null, 'joao@example.com', 'João', 'joao');
