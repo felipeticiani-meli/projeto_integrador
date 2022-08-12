@@ -79,4 +79,21 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.message", containsString("doesn't have stock")))
                 .andExpect(jsonPath("$.message", containsString(product.getProductName())));
     }
+
+    @Test
+    void getProductDetails_returnOrderedByBatchNumber_whenValidProduct() throws Exception {
+        service.create(validInboundOrderRequest, manager.getManagerId());
+        long biggerBatchNumber = validInboundOrderRequest.getBatchStock().get(1).getBatchNumber();
+        long smallerBatchNumber = validInboundOrderRequest.getBatchStock().get(0).getBatchNumber();
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(product.getProductId()))
+                        .param("orderBy", "l")
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productId").value(product.getProductId()))
+                .andExpect(jsonPath("$.batchStock").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[0].batchNumber").value(smallerBatchNumber))
+                .andExpect(jsonPath("$.batchStock[1].batchNumber").value(biggerBatchNumber));
+    }
 }
