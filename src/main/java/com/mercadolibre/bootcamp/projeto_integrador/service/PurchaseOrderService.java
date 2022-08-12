@@ -102,8 +102,18 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     @Override
     public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto) {
         for(ProductDto productDto: productsDto){
-            batchPurchaseOrderRepository.delete(findBatchPurchaseOrder(findOrder(purchaseOrderId), findProductById(productDto.getProductId())));
+            batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId), findProductById(productDto.getProductId()))));
         }
+    }
+
+    /**
+     * Metodo que devolve ao estoque a quantidade que estava no carrinho.
+     * @param batchPurchaseOrder objeto da tabela nxm BatchPurchaseOrder.
+     * @return o próprio objeto BatchPurchaseOrder.
+     */
+    private BatchPurchaseOrder returnToStock(BatchPurchaseOrder batchPurchaseOrder) {
+        batchPurchaseOrder.getBatch().setCurrentQuantity(batchPurchaseOrder.getBatch().getCurrentQuantity()+batchPurchaseOrder.getQuantity());
+        return batchPurchaseOrder;
     }
 
     /**
