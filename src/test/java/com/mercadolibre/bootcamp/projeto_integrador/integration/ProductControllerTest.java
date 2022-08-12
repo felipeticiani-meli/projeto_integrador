@@ -1,17 +1,18 @@
 package com.mercadolibre.bootcamp.projeto_integrador.integration;
 
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.integration.listeners.ResetDatabase;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Warehouse;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.service.IInboundOrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Comparator;
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,6 +29,7 @@ class ProductControllerTest extends BaseControllerTest {
     private Warehouse warehouse;
     private Section section;
     private Product product;
+    private List<BatchRequestDto> batches;
     private InboundOrderRequestDto validInboundOrderRequest;
 
     @Autowired
@@ -39,7 +41,8 @@ class ProductControllerTest extends BaseControllerTest {
         manager = getSavedManager();
         section = getSavedSection(warehouse, manager);
         product = getSavedProduct();
-        validInboundOrderRequest = getValidInboundOrderRequestDtoWithBatchList(section, getValidListBatchRequest(product));
+        batches = getValidListBatchRequest(product);
+        validInboundOrderRequest = getValidInboundOrderRequestDtoWithBatchList(section, batches);
         validInboundOrderRequest.getBatchStock().get(0).setBatchNumber(1);
         validInboundOrderRequest.getBatchStock().get(1).setBatchNumber(2);
     }
@@ -95,5 +98,27 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
                 .andExpect(jsonPath("$.batchStock[0].batchNumber").value(smallerBatchNumber))
                 .andExpect(jsonPath("$.batchStock[1].batchNumber").value(biggerBatchNumber));
+    }
+
+    @Test
+    void getProductDetails_returnOrderedByCurrentQuantity_whenValidProduct() throws Exception {
+        service.create(validInboundOrderRequest, manager.getManagerId());
+        long biggerCurrentQuantity = batches.stream()
+                .max(Comparator.comparing(BatchRequestDto::getInitialQuantity))
+                .get().getInitialQuantity();
+        long smallerCurrentQuantity = batches.stream()
+                .min(Comparator.comparing(BatchRequestDto::getInitialQuantity))
+                .get().getInitialQuantity();
+
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(product.getProductId()))
+                        .param("orderBy", "q")
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productId").value(product.getProductId()))
+                .andExpect(jsonPath("$.batchStock").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[0].currentQuantity").value(smallerCurrentQuantity))
+                .andExpect(jsonPath("$.batchStock[1].currentQuantity").value(biggerCurrentQuantity));
     }
 }
