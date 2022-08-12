@@ -69,4 +69,14 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.name", containsString("not found")))
                 .andExpect(jsonPath("$.message", containsString("There is no product with the specified id")));
     }
+
+    @Test
+    void getProductDetails_returnEmptyStockException_whenProductWithoutBatchStock() throws Exception {
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(product.getProductId()))
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", containsString("doesn't have stock")))
+                .andExpect(jsonPath("$.message", containsString(product.getProductName())));
+    }
 }
