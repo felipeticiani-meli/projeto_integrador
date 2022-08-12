@@ -2,8 +2,7 @@
 	"info": {
 		"_postman_id": "5e71c63b-ee36-458b-9da1-1c7c707d9e89",
 		"name": "Projeto integrador",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "22711155"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -22,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"batchNumber\": 1002,\n            \"productId\": 8,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"raw": "{\n    \"sectionCode\": 3,\n    \"batchStock\": [\n        {\n            \"productId\": 1,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -30,14 +29,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"raw": "{{base}}/fresh-products/inboundorder",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							]
@@ -58,7 +54,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"sectionCode\": 1,\n    \"batchStock\": [\n        {\n            \"productId\": 8,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }, \n        {   \n            \"batchNumber\": 1,\n            \"productId\": 7,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 19,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }\n    ]\n}",
+							"raw": "{\n    \"sectionCode\": 3,\n    \"batchStock\": [\n        {\n            \"batchNumber\": 1,\n            \"productId\": 1,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 10,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -66,14 +62,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"raw": "{{base}}/fresh-products/inboundorder?orderNumber=1",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							],
@@ -298,6 +291,132 @@
 								{
 									"key": "orderBy",
 									"value": "q"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base}}/fresh-products",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "rf",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insert purchase",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"orderStatus\": \"Opened\",\n    \"batch\": {\n        \"batchNumber\": 1,\n        \"quantity\": 2\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update purchase",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
 								}
 							]
 						}
@@ -676,6 +795,32 @@
 					"response": []
 				}
 			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base",
+			"value": "localhost:8080/api/v1"
 		}
 	]
 }
