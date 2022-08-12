@@ -217,4 +217,21 @@ public class UpdateInboundOrderTest extends BaseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void updateInboundOrder_returnsBadRequest_whenIsGivenProductThatDoesNotExists() throws Exception {
+        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
+                .content(asJsonString(validInboundOrderRequest))
+                .header("Manager-Id", manager.getManagerId())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        BatchRequestDto batchWithNonExistentProduct = getBatchRequest(999);
+
+        mockMvc.perform(put("/api/v1/fresh-products/inboundorder")
+                        .param("orderNumber", String.valueOf(1L))
+                        .content(asJsonString(getValidInboundOrderRequestDto(section, batchWithNonExistentProduct)))
+                        .header("Manager-Id", manager.getManagerId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 }

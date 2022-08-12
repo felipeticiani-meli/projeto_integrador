@@ -136,7 +136,13 @@ public class BatchService implements IBatchService {
     }
 
     private Batch updateBatchFromDto(Batch batch, BatchRequestDto dto, Map<Long, Product> products) {
-        batch.setProduct(products.get(dto.getProductId()));
+        Product product = products.get(dto.getProductId());
+
+        if (product == null) {
+            throw new NotFoundException("Product");
+        }
+
+        batch.setProduct(product);
         batch.setCurrentTemperature(dto.getCurrentTemperature());
         batch.setMinimumTemperature(dto.getMinimumTemperature());
         batch.setManufacturingDate(dto.getManufacturingDate());
