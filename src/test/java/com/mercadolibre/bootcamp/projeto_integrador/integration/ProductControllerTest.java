@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
@@ -120,5 +121,27 @@ class ProductControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
                 .andExpect(jsonPath("$.batchStock[0].currentQuantity").value(smallerCurrentQuantity))
                 .andExpect(jsonPath("$.batchStock[1].currentQuantity").value(biggerCurrentQuantity));
+    }
+
+    @Test
+    void getProductDetails_returnOrderedByDueDate_whenValidProduct() throws Exception {
+        service.create(validInboundOrderRequest, manager.getManagerId());
+        String closestDueDate = String.valueOf(batches.stream()
+                .min(Comparator.comparing(BatchRequestDto::getDueDate))
+                .get().getDueDate());
+        String farthestDueDate = String.valueOf(batches.stream()
+                .max(Comparator.comparing(BatchRequestDto::getDueDate))
+                .get().getDueDate());
+
+        mockMvc.perform(get("/api/v1/fresh-products/list")
+                        .param("productId", String.valueOf(product.getProductId()))
+                        .param("orderBy", "v")
+                        .header("Manager-Id", manager.getManagerId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productId").value(product.getProductId()))
+                .andExpect(jsonPath("$.batchStock").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[*].section").isNotEmpty())
+                .andExpect(jsonPath("$.batchStock[0].dueDate").value(closestDueDate))
+                .andExpect(jsonPath("$.batchStock[1].dueDate").value(farthestDueDate));
     }
 }
