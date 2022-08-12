@@ -22,9 +22,6 @@ public class PurchaseOrder {
 
     @OneToMany(mappedBy = "purchaseOrder")
     private List<BatchPurchaseOrder> batchPurchaseOrders;
-
-    public PurchaseOrder() {
-        this.batchPurchaseOrders = getBatchPurchaseOrders();
-    }
+    
 }
 // request.getBuyerId().getBuyerId();
