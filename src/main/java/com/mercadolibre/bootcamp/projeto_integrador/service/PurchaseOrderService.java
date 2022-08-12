@@ -175,7 +175,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param product     ProductDto com informação de quantidades desejadas
      * @return objeto Batch que seja válido.
      */
-    @Transactional
     Batch checkQuantityAndDueDate(List<Batch> batches, ProductDto product) {
         Batch batchProduct = batches.stream()
                 .filter((batch) -> batch.getDueDate().minus(21, ChronoUnit.DAYS).compareTo(LocalDate.now()) > 0)
