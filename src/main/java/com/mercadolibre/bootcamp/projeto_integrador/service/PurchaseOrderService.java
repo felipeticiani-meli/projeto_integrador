@@ -67,10 +67,6 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     public BigDecimal update(long purchaseOrderId, long buyerId) {
         PurchaseOrder foundOrder = findOrder(purchaseOrderId, buyerId);
 
-        if (foundOrder.getOrderStatus().equals("Closed")) {
-            throw new PurchaseOrderAlreadyClosedException(foundOrder.getPurchaseId());
-        }
-
         foundOrder.setOrderStatus("Closed");
         purchaseOrderRepository.save(foundOrder);
 
@@ -251,6 +247,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         Optional<PurchaseOrder> foundOrder = purchaseOrderRepository.findById(purchaseOrderId);
         if (foundOrder.isEmpty()) throw new NotFoundException("Purchase order");
         if(foundOrder.get().getBuyer().getBuyerId() != buyerId) throw new UnauthorizedBuyerException(buyerId, purchaseOrderId);
+        if (foundOrder.get().getOrderStatus().equals("Closed")) throw new PurchaseOrderAlreadyClosedException(foundOrder.get().getPurchaseId());
         return foundOrder.get();
     }
 
