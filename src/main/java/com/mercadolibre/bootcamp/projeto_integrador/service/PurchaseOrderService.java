@@ -5,6 +5,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ProductOutOfStockException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.PurchaseOrderAlreadyClosedException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.UnauthorizedBuyerException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,8 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @return valor BigDecimal do valor total em carrinho.
      */
     @Override
-    public BigDecimal create(PurchaseOrderRequestDto request) {
-        Buyer buyer = findBuyer(request.getBuyerId());
+    public BigDecimal create(PurchaseOrderRequestDto request, long buyerId) {
+        Buyer buyer = findBuyer(buyerId);
         PurchaseOrder purchaseOrder = getPurchase(buyer, request.getOrderStatus());
         List<ProductDto> products = request.getProducts();
 
@@ -63,8 +64,8 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      */
     @Transactional
     @Override
-    public BigDecimal update(long purchaseOrderId) {
-        PurchaseOrder foundOrder = findOrder(purchaseOrderId);
+    public BigDecimal update(long purchaseOrderId, long buyerId) {
+        PurchaseOrder foundOrder = findOrder(purchaseOrderId, buyerId);
 
         if (foundOrder.getOrderStatus().equals("Closed")) {
             throw new PurchaseOrderAlreadyClosedException(foundOrder.getPurchaseId());
@@ -84,9 +85,9 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param productsDto identificadores dos produtos.
      */
     @Override
-    public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto) {
+    public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto, long buyerId) {
         for(ProductDto productDto: productsDto){
-            batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId), findProductById(productDto.getProductId()))));
+            batchPurchaseOrderRepository.delete(returnToStock(findBatchPurchaseOrder(findOrder(purchaseOrderId, buyerId), findProductById(productDto.getProductId()))));
         }
     }
 
@@ -246,9 +247,10 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @param purchaseOrderId identificador da PurchaseOrder.
      * @return objeto PurchaseOrder encontrado.
      */
-    private PurchaseOrder findOrder(long purchaseOrderId) {
+    private PurchaseOrder findOrder(long purchaseOrderId, long buyerId) {
         Optional<PurchaseOrder> foundOrder = purchaseOrderRepository.findById(purchaseOrderId);
         if (foundOrder.isEmpty()) throw new NotFoundException("Purchase order");
+        if(foundOrder.get().getBuyer().getBuyerId() != buyerId) throw new UnauthorizedBuyerException(buyerId, purchaseOrderId);
         return foundOrder.get();
     }
 

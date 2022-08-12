@@ -15,10 +15,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class PurchaseOrderRequestDto {
-    @NotNull(message = "O id do cliente não pode estar vazio")
-    @Positive(message = "O id do cliente deve ser um número positivo")
-    private long buyerId;
-
     @NotNull(message = "O status da compra não pode estar vazio")
     @Pattern(regexp = "^(Closed|Opened)$", message = "Status só pode ser Opened ou Closed")
     private String orderStatus;

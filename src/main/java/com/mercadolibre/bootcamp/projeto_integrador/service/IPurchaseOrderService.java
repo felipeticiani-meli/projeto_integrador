@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface IPurchaseOrderService {
-    BigDecimal create (PurchaseOrderRequestDto request);
-    BigDecimal update (long purchaseOrderId);
-    void dropProducts(long purchaseOrderId, List<ProductDto> productsDto);
+    BigDecimal create (PurchaseOrderRequestDto request, long buyerId);
+    BigDecimal update (long purchaseOrderId, long buyerId);
+    void dropProducts(long purchaseOrderId, List<ProductDto> productsDto, long buyerId);
 }
