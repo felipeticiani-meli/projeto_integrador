@@ -3,20 +3,19 @@ package com.mercadolibre.bootcamp.projeto_integrador.integration;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.integration.listeners.ResetDatabase;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Warehouse;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 @SpringBootTest
 @AutoConfigureMockMvc
 @ResetDatabase
@@ -25,6 +24,8 @@ public class CreateInboundOrderTest extends BaseControllerTest {
     private Manager forbiddenManager;
     private Section sectionWithChilled;
     private Product frozenProduct;
+    private Product product;
+    private Section section;
 
     private InboundOrderRequestDto validInboundOrderRequest;
     private InboundOrderRequestDto invalidInboundOrderRequest;
@@ -36,10 +37,10 @@ public class CreateInboundOrderTest extends BaseControllerTest {
         manager = getSavedManager();
         forbiddenManager = getSavedManager();
 
-        Section section = getSavedSection(warehouse, manager);
+        section = getSavedSection(warehouse, manager);
         sectionWithChilled = getSavedSection(warehouse, manager, Section.Category.CHILLED);
 
-        Product product = getSavedProduct();
+        product = getSavedProduct();
         frozenProduct = getSavedProduct(Section.Category.FROZEN);
 
         validInboundOrderRequest = getValidInboundOrderRequestDto(section, getValidBatchRequest(product));
@@ -53,6 +54,43 @@ public class CreateInboundOrderTest extends BaseControllerTest {
                         .header("Manager-Id", manager.getManagerId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void createInboundOrder_ignoresBatchNumbers_whenIsGivenAValidInputWithBatchNumbers() throws Exception {
+        // Arrange
+        final float FIRST_BATCH_TEMPERATURE = 30;
+        final float SECOND_BATCH_TEMPERATURE = 50;
+
+        BatchRequestDto firstBatch = getValidBatchRequest(product);
+        firstBatch.setCurrentTemperature(FIRST_BATCH_TEMPERATURE);
+
+        BatchRequestDto secondBatchWithSameId = getValidBatchRequest(product);
+        secondBatchWithSameId.setBatchNumber(1L);
+        secondBatchWithSameId.setCurrentTemperature(SECOND_BATCH_TEMPERATURE);
+
+        // Sanity check (The database should be empty before the test)
+        assertThat(batchRepository.findAll()).isEmpty();
+
+        // Act
+        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
+                        .content(asJsonString(getValidInboundOrderRequestDto(section, firstBatch)))
+                        .header("Manager-Id", manager.getManagerId())
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
+                        .content(asJsonString(getValidInboundOrderRequestDto(section, secondBatchWithSameId)))
+                        .header("Manager-Id", manager.getManagerId())
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        Batch batch1 = batchRepository.findById(1L).orElse(null);
+        Batch batch2 = batchRepository.findById(2L).orElse(null);
+
+        // Assert
+        assertThat(batch1).isNotNull();
+        assertThat(batch2).isNotNull();
+        assertThat(batch1.getCurrentTemperature()).isEqualTo(FIRST_BATCH_TEMPERATURE);
+        assertThat(batch2.getCurrentTemperature()).isEqualTo(SECOND_BATCH_TEMPERATURE);
     }
 
     @Test

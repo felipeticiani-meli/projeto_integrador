@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Warehouse;
+import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import com.mercadolibre.bootcamp.projeto_integrador.util.*;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,6 +19,7 @@ import java.util.List;
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class BaseControllerTest {
     protected final ObjectMapper objectMapper;
+    protected final ModelMapper modelMapper;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -40,9 +39,10 @@ public class BaseControllerTest {
     public BaseControllerTest() {
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
+        modelMapper = new ModelMapper();
     }
 
-    protected InboundOrderRequestDto getValidInboundOrderRequestDto(Section section, BatchRequestDto batchRequest) {
+    protected InboundOrderRequestDto getValidInboundOrderRequestDto(Section section, BatchRequestDto... batchRequest) {
         InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
         requestDto.setBatchStock(List.of(batchRequest));
         requestDto.setSectionCode(section.getSectionCode());
@@ -111,7 +111,34 @@ public class BaseControllerTest {
         return manager;
     }
 
+    protected InboundOrder getSavedInboundOrder(Section section) {
+        InboundOrder order = new InboundOrder();
+        order.setOrderDate(LocalDate.now());
+        order.setSection(section);
+        inboundOrderRepository.save(order);
+        return order;
+    }
+
+    protected Batch getSavedBatch(Product product, InboundOrder order) {
+        Batch batch = BatchGenerator.newBatch(product, order);
+        batchRepository.save(batch);
+        return batch;
+    }
+
     protected String asJsonString(final Object obj) throws JsonProcessingException {
         return objectMapper.writeValueAsString(obj);
+    }
+
+    protected List<BatchRequestDto> getValidListBatchRequest(Product product) {
+        List<BatchRequestDto> batches = BatchGenerator.newList2BatchRequestsDTO();
+        batches.forEach(b -> b.setProductId(product.getProductId()));
+        return batches;
+    }
+
+    protected InboundOrderRequestDto getValidInboundOrderRequestDtoWithBatchList(Section section, List<BatchRequestDto> batchRequest) {
+        InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
+        requestDto.setBatchStock(batchRequest);
+        requestDto.setSectionCode(section.getSectionCode());
+        return requestDto;
     }
 }
