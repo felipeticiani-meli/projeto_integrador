@@ -2,6 +2,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BatchOutOfStockException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.PurchaseOrderAlreadyClosedException;
@@ -43,11 +44,11 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      */
     @Transactional
     @Override
-    public BigDecimal create(PurchaseOrderRequestDto request, long buyerId) {
+    public PurchaseOrderResponseDto create(PurchaseOrderRequestDto request, long buyerId) {
         Buyer buyer = findBuyer(buyerId);
         PurchaseOrder purchaseOrder = getPurchaseOrder(buyer, request.getOrderStatus());
 
-        return getPurchaseInStock(request.getBatch(), purchaseOrder);
+        return new PurchaseOrderResponseDto(purchaseOrder.getPurchaseId(), getPurchaseInStock(request.getBatch(), purchaseOrder));
     }
 
     /**
@@ -57,15 +58,15 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      */
     @Transactional
     @Override
-    public BigDecimal update(long purchaseOrderId, long buyerId) {
+    public PurchaseOrderResponseDto update(long purchaseOrderId, long buyerId) {
         PurchaseOrder foundOrder = findPurchaseOrder(purchaseOrderId, buyerId);
 
         foundOrder.setOrderStatus("Closed");
         purchaseOrderRepository.save(foundOrder);
 
-        return foundOrder.getBatchPurchaseOrders().stream()
+        return new PurchaseOrderResponseDto(foundOrder.getPurchaseId(), foundOrder.getBatchPurchaseOrders().stream()
                 .map(batchPurchaseOrder -> batchPurchaseOrder.getUnitPrice().multiply(new BigDecimal(batchPurchaseOrder.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
     /**

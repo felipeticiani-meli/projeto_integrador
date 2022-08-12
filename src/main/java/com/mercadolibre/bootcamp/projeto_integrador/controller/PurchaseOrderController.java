@@ -2,6 +2,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.controller;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,13 +23,13 @@ public class PurchaseOrderController {
     private PurchaseOrderService service;
 
     @PostMapping("/fresh-products/orders")
-    public ResponseEntity<BigDecimal> createPurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
-                                                          @RequestBody @Valid PurchaseOrderRequestDto purchaseOrder) {
+    public ResponseEntity<PurchaseOrderResponseDto> createPurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
+                                                                        @RequestBody @Valid PurchaseOrderRequestDto purchaseOrder) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(purchaseOrder, buyerId));
     }
 
     @PutMapping("/fresh-products/orders")
-    public ResponseEntity<BigDecimal> updatePurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
+    public ResponseEntity<PurchaseOrderResponseDto> updatePurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
                                                           @RequestParam long purchaseOrderId) {
         return ResponseEntity.ok(service.update(purchaseOrderId, buyerId));
     }
