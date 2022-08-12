@@ -57,7 +57,7 @@ public class CreateInboundOrderTest extends BaseControllerTest {
     }
 
     @Test
-    void createInboundOrder_ignoresBatchNumbers_whenIsGivenAValidInputWithBatchNumbers() throws Exception {
+    void createInboundOrder_ignoresBatchNumbers_whenIsGivenAValidInputWithBatchNumbersSet() throws Exception {
         // Arrange
         final float FIRST_BATCH_TEMPERATURE = 30;
         final float SECOND_BATCH_TEMPERATURE = 50;
@@ -74,14 +74,14 @@ public class CreateInboundOrderTest extends BaseControllerTest {
 
         // Act
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(getValidInboundOrderRequestDto(section, firstBatch)))
-                        .header("Manager-Id", manager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON));
+                .content(asJsonString(getValidInboundOrderRequestDto(section, firstBatch)))
+                .header("Manager-Id", manager.getManagerId())
+                .contentType(MediaType.APPLICATION_JSON));
 
         mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
-                        .content(asJsonString(getValidInboundOrderRequestDto(section, secondBatchWithSameId)))
-                        .header("Manager-Id", manager.getManagerId())
-                        .contentType(MediaType.APPLICATION_JSON));
+                .content(asJsonString(getValidInboundOrderRequestDto(section, secondBatchWithSameId)))
+                .header("Manager-Id", manager.getManagerId())
+                .contentType(MediaType.APPLICATION_JSON));
 
         Batch batch1 = batchRepository.findById(1L).orElse(null);
         Batch batch2 = batchRepository.findById(2L).orElse(null);
@@ -100,6 +100,17 @@ public class CreateInboundOrderTest extends BaseControllerTest {
                         .header("Manager-Id", manager.getManagerId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void createInboundOrder_returnsNotFound_whenIsGivenProductThatDoesNotExist() throws Exception {
+        BatchRequestDto batchWithNonExistentProduct = getBatchRequest(999);
+
+        mockMvc.perform(post("/api/v1/fresh-products/inboundorder")
+                        .content(asJsonString(getValidInboundOrderRequestDto(section, batchWithNonExistentProduct)))
+                        .header("Manager-Id", manager.getManagerId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
