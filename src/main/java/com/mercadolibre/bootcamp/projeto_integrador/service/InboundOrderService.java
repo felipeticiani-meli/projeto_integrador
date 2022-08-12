@@ -4,6 +4,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
+import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.InboundOrder;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IInboundOrderRepository;
@@ -44,7 +45,7 @@ public class InboundOrderService implements IInboundOrderService {
 
         inboundOrderRepository.save(order);
 
-        var batches = batchService.createAll(request.getBatchStock(), order);
+        List<Batch> batches = batchService.createAll(request.getBatchStock(), order);
 
         return new InboundOrderResponseDto(batches);
     }
@@ -67,7 +68,7 @@ public class InboundOrderService implements IInboundOrderService {
                 .collect(Collectors.toList());
 
         sectionService.update(order.getSection(), batchesToInsert, managerId);
-        var savedBatches = batchService.updateAll(order, batchesDto);
+        List<Batch> savedBatches = batchService.updateAll(order, batchesDto);
 
         return new InboundOrderResponseDto(savedBatches);
     }
