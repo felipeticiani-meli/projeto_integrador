@@ -38,10 +38,17 @@ public class Section {
     }
 
     public enum Category {
-        FRESH,
-        CHILLED,
-        FROZEN;
+        FRESH("FS"),
+        CHILLED("RF"),
+        FROZEN("FF");
 
         public static final String mysqlDefinition = "enum('FRESH', 'CHILLED', 'FROZEN')";
+
+        @Getter
+        private final String code;
+
+        Category(String code) {
+            this.code = code;
+        }
     }
 }

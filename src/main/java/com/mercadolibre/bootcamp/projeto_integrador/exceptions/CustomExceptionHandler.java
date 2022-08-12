@@ -12,6 +12,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -67,6 +68,20 @@ public class CustomExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new CustomError(error, error, LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<CustomError> handle(MethodArgumentTypeMismatchException exception) {
+        CustomError error = new CustomError(
+                "Invalid type",
+                String.format("The parameter %s has an invalid type. Expected: %s",
+                        exception.getName(),
+                        exception.getParameter().getGenericParameterType().getTypeName()),
+                LocalDateTime.now());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 
     // Trata as exceções referente às validações (@Valid)

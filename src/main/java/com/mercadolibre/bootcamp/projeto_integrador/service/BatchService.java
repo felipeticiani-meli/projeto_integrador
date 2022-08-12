@@ -201,6 +201,9 @@ public class BatchService implements IBatchService {
      */
     @Override
     public List<BatchDueDateResponseDto> findBatchBySection(long sectionCode, int numberOfDays, long managerId) {
+        if (numberOfDays < 0)
+            throw new BadRequestException("The number of days to expiration can't be negative");
+
         Section section = sectionRepository.findById(sectionCode).orElseThrow(() -> new NotFoundException("section"));
 
         Manager manager = tryFindManagerById(managerId);
