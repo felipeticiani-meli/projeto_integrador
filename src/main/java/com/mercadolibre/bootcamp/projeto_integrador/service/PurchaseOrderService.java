@@ -73,7 +73,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     }
 
     /**
-     * Metodo que atualiza o carrinho (PurchaseOrder) para fechado e efetivamente remove do estoque.
+     * Metodo que atualiza o carrinho (PurchaseOrder) para fechado.
      * @param purchaseOrderId identificador do carrinho.
      * @return valor BigDecimal do valor total da compra.
      */
@@ -94,11 +94,15 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /**
+     * Metodo que remove produto do carrinho.
+     * @param purchaseOrderId identificador do carrinho (PurchaseOrder).
+     * @param productsDto identificadores dos produtos.
+     */
     @Override
     public void dropProducts(long purchaseOrderId, List<ProductDto> productsDto) {
         for(ProductDto productDto: productsDto){
-            batchPurchaseOrderRepository.delete(batchPurchaseOrderRepository
-                    .findOneByPurchaseOrderAndBatch_Product_ProductId(findOrder(purchaseOrderId), productDto.getProductId()));
+            batchPurchaseOrderRepository.delete(findBatchPurchaseOrder(findOrder(purchaseOrderId), findProductById(productDto.getProductId())));
         }
     }
 
@@ -246,8 +250,14 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      * @return Objeto BatchPurchaseOrder.
      */
     private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Batch batch) {
-        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByBatchAndPurchaseOrder(batch, purchase);
+        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByPurchaseOrderAndBatch(purchase, batch);
         if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Batch PurchaseOrder");
+        return foundBatchPurchaseOrder.get();
+    }
+
+    private BatchPurchaseOrder findBatchPurchaseOrder(PurchaseOrder purchase, Product product) {
+        Optional<BatchPurchaseOrder> foundBatchPurchaseOrder = batchPurchaseOrderRepository.findOneByPurchaseOrderAndBatch_Product(purchase, product);
+        if (foundBatchPurchaseOrder.isEmpty()) throw new NotFoundException("Product in the PurchaseOrder");
         return foundBatchPurchaseOrder.get();
     }
 }
