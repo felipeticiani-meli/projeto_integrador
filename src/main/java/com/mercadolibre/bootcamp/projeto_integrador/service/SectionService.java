@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,7 +24,7 @@ public class SectionService implements ISectionService {
     private IManagerService managerService;
 
     @Autowired
-    private IProductService productService;
+    private IProductMapService productService;
 
     @Override
     public Section findById(long sectionCode) {
@@ -34,7 +33,7 @@ public class SectionService implements ISectionService {
 
     @Override
     public Section update(Section section, List<BatchRequestDto> batchesToInsert, long managerId) {
-        Map<Long, Product> products = productService.getProductMap(batchesToInsert);
+        ProductMapService.ProductMap products = productService.getProductMap(batchesToInsert);
 
         ensureManagerHasPermissionInSection(managerId, section);
         ensureSectionHasCompatibleCategory(section, products);
@@ -50,7 +49,7 @@ public class SectionService implements ISectionService {
      * @param section Seção dos lotes
      * @param products Produtos
      */
-    private void ensureSectionHasCompatibleCategory(Section section, Map<Long, Product> products) {
+    private void ensureSectionHasCompatibleCategory(Section section, ProductMapService.ProductMap products) {
         List<Product> invalidProducts = products.values()
                 .stream()
                 .filter(product -> !product.getCategory().equals(section.getCategory()))
