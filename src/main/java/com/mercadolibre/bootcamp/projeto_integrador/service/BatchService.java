@@ -6,8 +6,6 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.*;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -24,14 +22,12 @@ import java.util.stream.Stream;
 @Service
 public class BatchService implements IBatchService {
     private final int minimumExpirationDays = 20;
-
     @Autowired
     private IBatchRepository batchRepository;
     @Autowired
-    private IManagerRepository managerRepository;
+    private IManagerService managerService;
     @Autowired
-    private ISectionRepository sectionRepository;
-
+    private ISectionService sectionService;
     @Autowired
     private IProductService productService;
 
@@ -204,7 +200,7 @@ public class BatchService implements IBatchService {
         if (numberOfDays < 0)
             throw new BadRequestException("The number of days to expiration can't be negative");
 
-        Section section = sectionRepository.findById(sectionCode).orElseThrow(() -> new NotFoundException("section"));
+        Section section = sectionService.findById(sectionCode);
 
         Manager manager = tryFindManagerById(managerId);
         ensureManagerHasPermissionInSection(manager, section);
@@ -296,6 +292,6 @@ public class BatchService implements IBatchService {
     }
 
     private Manager tryFindManagerById(long managerId) {
-        return managerRepository.findById(managerId).orElseThrow(() -> new ManagerNotFoundException(managerId));
+        return managerService.findById(managerId);
     }
 }
