@@ -76,17 +76,15 @@ public class BatchService implements IBatchService {
                 .filter(dto -> dto.getBatchNumber() > 0L)
                 .collect(Collectors.toMap(BatchRequestDto::getBatchNumber, dto -> dto));
 
-        var updatedBatches = batchesToUpdate.stream()
-                .map(batch -> updateBatchFromDto(batch, batchesDtoMap.get(batch.getBatchNumber()), products))
-                .collect(Collectors.toList());
+        Stream<Batch> updatedBatches = batchesToUpdate.stream()
+                .map(batch -> updateBatchFromDto(batch, batchesDtoMap.get(batch.getBatchNumber()), products));
 
-        var batchesToInsert = batchesDto.stream()
+        Stream<Batch> batchesToInsert = batchesDto.stream()
                 .filter(dto -> dto.getBatchNumber() == 0L)
                 .map(dto -> mapDtoToBatch(dto, order, products))
-                .peek(batch -> batch.setCurrentQuantity(batch.getInitialQuantity()))
-                .collect(Collectors.toList());
+                .peek(batch -> batch.setCurrentQuantity(batch.getInitialQuantity()));
 
-        List<Batch> batchesToSave = Stream.concat(updatedBatches.stream(), batchesToInsert.stream()).collect(Collectors.toList());
+        List<Batch> batchesToSave = Stream.concat(updatedBatches, batchesToInsert).collect(Collectors.toList());
 
         return batchRepository.saveAll(batchesToSave);
     }
