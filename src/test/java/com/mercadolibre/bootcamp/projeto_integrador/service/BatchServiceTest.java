@@ -5,6 +5,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ManagerNotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.UnauthorizedManagerException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
@@ -12,6 +13,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
+import com.mercadolibre.bootcamp.projeto_integrador.util.ManagerGenerator;
 import org.aspectj.weaver.ast.Not;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -243,6 +245,25 @@ class BatchServiceTest {
         // Assert
         assertThat(exception.getName()).contains("Manager not found");
         assertThat(exception.getMessage()).contains("Manager with id " + manager.getManagerId() + " not found");
+        verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
+    }
+
+    @Test
+    void findBatchBySection_returnUnauthorizedManagerException_whenUnauthorizedManager() {
+        // Arrange
+        Manager unauthorizedManager = ManagerGenerator.newManager();
+        unauthorizedManager.setManagerId(5);
+        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(unauthorizedManager));
+
+        // Act
+        UnauthorizedManagerException exception = assertThrows(UnauthorizedManagerException.class,
+                () -> service.findBatchBySection(section.getSectionCode(), 15, unauthorizedManager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains(unauthorizedManager.getName() + " is not authorized.");
+        assertThat(exception.getMessage()).contains(unauthorizedManager.getName() + " is not authorized to perform this action");
         verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any());
     }
