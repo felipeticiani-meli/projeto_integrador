@@ -384,4 +384,20 @@ class BatchServiceTest {
         verify(batchRepository, never()).findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any());
     }
+
+    @Test
+    void findBatchByCategoryAndDueDate_returnBadRequestException_whenInvalidOrder() {
+        // Arrange
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> service.findBatchByCategoryAndDueDate("FS", 15, "ab", manager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains("Bad request");
+        assertThat(exception.getMessage()).contains("The order direction should be either ASC or DESC");
+        verify(batchRepository, never()).findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
+    }
 }
