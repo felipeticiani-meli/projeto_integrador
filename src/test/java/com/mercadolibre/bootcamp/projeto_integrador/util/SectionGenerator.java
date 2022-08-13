@@ -5,7 +5,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Warehouse;
 
 public class SectionGenerator {
-    public static Section getSection(Warehouse warehouse, Manager manager) {
+    public static Section getFreshSection(Warehouse warehouse, Manager manager) {
         Section section = new Section();
         section.setCurrentBatches(1);
         section.setCategory(Section.Category.FRESH);
@@ -15,7 +15,7 @@ public class SectionGenerator {
         return section;
     }
 
-    public static Section getSectionWith1SlotAvailable() {
+    public static Section getFreshSectionWith1SlotAvailable() {
         return Section.builder()
                 .sectionCode(1)
                 .category(Section.Category.FRESH)
@@ -26,7 +26,7 @@ public class SectionGenerator {
                 .build();
     }
 
-    public static Section getSectionWith10SlotsAvailable() {
+    public static Section getFreshSectionWith10SlotsAvailable() {
         return Section.builder()
                 .sectionCode(2)
                 .category(Section.Category.FRESH)
@@ -37,7 +37,7 @@ public class SectionGenerator {
                 .build();
     }
 
-    public static Section getCrowdedSection() {
+    public static Section getCrowdedFreshSection() {
         return Section.builder()
                 .sectionCode(3)
                 .category(Section.Category.FRESH)

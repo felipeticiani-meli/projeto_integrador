@@ -1,15 +1,13 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductDetailsResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.EmptyStockException;
-import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ManagerNotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
-import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IProductRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +27,7 @@ public class ProductService implements IProductService {
     private IBatchRepository batchRepository;
 
     @Autowired
-    private IManagerRepository managerRepository;
+    private IManagerService managerService;
 
     /**
      * Método que retorna os detalhes do produto.
@@ -39,7 +38,7 @@ public class ProductService implements IProductService {
      */
     @Override
     public ProductDetailsResponseDto getProductDetails(long productId, long managerId, String orderBy) {
-        tryFindManagerById(managerId);
+        ensureManagerExists(managerId);
         Product product = productRepository.findById(productId).orElseThrow(() -> new NotFoundException("product"));
         List<BatchResponseDto> batches = batchRepository.findAllByProduct(product)
                 .stream()
@@ -83,7 +82,20 @@ public class ProductService implements IProductService {
         }
     }
 
-    private Manager tryFindManagerById(long managerId) {
-        return managerRepository.findById(managerId).orElseThrow(() -> new ManagerNotFoundException(managerId));
+    private void ensureManagerExists(long managerId) {
+        managerService.findById(managerId);
+    }
+
+    /**
+     * Retorna mapa de produtos por ID
+     * @param batchesDto Lotes enviados no pedido de entrada
+     * @return Mapa de produtos com identificador como chave
+     */
+    @Override
+    public Map<Long, Product> getProductMap(List<BatchRequestDto> batchesDto) {
+        return productRepository
+                .findAllById(batchesDto.stream().map(BatchRequestDto::getProductId).collect(Collectors.toList()))
+                .stream()
+                .collect(Collectors.toMap(Product::getProductId, product -> product));
     }
 }

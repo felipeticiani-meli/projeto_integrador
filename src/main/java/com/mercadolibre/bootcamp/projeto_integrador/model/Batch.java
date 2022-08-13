@@ -1,12 +1,14 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -44,4 +46,8 @@ public class Batch {
 
     @Column(precision = 9, scale = 2)
     private BigDecimal productPrice;
+
+    @OneToMany(mappedBy = "batch")
+    @JsonIgnore
+    private List<BatchPurchaseOrder> batchPurchaseOrders;
 }
