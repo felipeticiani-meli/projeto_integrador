@@ -1,11 +1,15 @@
 package com.mercadolibre.bootcamp.projeto_integrador.service;
 
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchBuyerResponseDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
+import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
+import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,12 +35,20 @@ class BatchServiceTest {
 
     @Mock
     private IBatchRepository batchRepository;
+    @Mock
+    private ISectionRepository sectionRepository;
+    @Mock
+    private IManagerRepository managerRepository;
 
     private List<Batch> batches;
+    private Section section;
+    private Manager manager;
 
     @BeforeEach
     private void setup() {
         batches = BatchGenerator.newBatchList();
+        section = batches.get(0).getInboundOrder().getSection();
+        manager = section.getManager();
     }
 
     @Test
@@ -153,5 +167,32 @@ class BatchServiceTest {
 
         // Assert
         assertThat(exception.getMessage()).contains("Invalid category, try again with one of the options");
+    }
+
+    @Test
+    void findBatchBySection_returnBatches_whenBatchesExists() {
+        // Arrange
+        batches.get(0).setCurrentQuantity(0);
+        batches.get(1).setDueDate(LocalDate.now().plusDays(5));
+        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when((batchRepository.findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any()))).thenReturn(batches);
+
+        // Act
+        List<BatchDueDateResponseDto> returnedBatches = service.findBatchBySection(section.getSectionCode(), 15, manager.getManagerId());
+
+        // Assert
+        assertThat(returnedBatches).isNotEmpty();
+        assertEquals(returnedBatches.size(), 2);
+        assertEquals(returnedBatches.get(0).getBatchNumber(), batches.get(1).getBatchNumber());
+        assertEquals(returnedBatches.get(1).getBatchNumber(), batches.get(2).getBatchNumber());
+        assertEquals(returnedBatches.get(0).getProductName(), batches.get(1).getProduct().getProductName());
+        assertEquals(returnedBatches.get(1).getProductName(), batches.get(2).getProduct().getProductName());
+        assertThat(returnedBatches.get(0).getCurrentQuantity()).isPositive();
+        assertThat(returnedBatches.get(1).getCurrentQuantity()).isPositive();
+        assertThat(returnedBatches.get(0).getDueDate()).isBefore(LocalDate.now().plusDays(16));
+        assertThat(returnedBatches.get(1).getDueDate()).isBefore(LocalDate.now().plusDays(16));
+        assertThat(returnedBatches.get(0).getDueDate()).isBefore(returnedBatches.get(1).getDueDate());
     }
 }
