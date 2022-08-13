@@ -3,6 +3,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.service;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchBuyerResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchDueDateResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.BadRequestException;
+import com.mercadolibre.bootcamp.projeto_integrador.exceptions.ManagerNotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.exceptions.NotFoundException;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
@@ -227,5 +228,22 @@ class BatchServiceTest {
 
         // Assert
         assertThat(returnedBatches).isEmpty();
+    }
+
+    @Test
+    void findBatchBySection_returnNotFoundException_whenInvalidManager() {
+        // Arrange
+        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+
+        // Act
+        ManagerNotFoundException exception = assertThrows(ManagerNotFoundException.class,
+                () -> service.findBatchBySection(section.getSectionCode(), 15, manager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains("Manager not found");
+        assertThat(exception.getMessage()).contains("Manager with id " + manager.getManagerId() + " not found");
+        verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
     }
 }
