@@ -212,4 +212,20 @@ class BatchServiceTest {
         verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any());
     }
+
+    @Test
+    void findBatchBySection_returnEmptyList_whenBatchesNotExistsForParameters() {
+        // Arrange
+        batches.clear();
+        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when((batchRepository.findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any()))).thenReturn(batches);
+
+        // Act
+        List<BatchDueDateResponseDto> returnedBatches = service.findBatchBySection(section.getSectionCode(), 15, manager.getManagerId());
+
+        // Assert
+        assertThat(returnedBatches).isEmpty();
+    }
 }
