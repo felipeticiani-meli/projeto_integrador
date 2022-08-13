@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -24,4 +25,9 @@ public class Product {
     @Column(columnDefinition = Section.Category.mysqlDefinition)
     @Enumerated(EnumType.STRING)
     private Section.Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    @JsonIgnore
+    private Seller seller;
 }

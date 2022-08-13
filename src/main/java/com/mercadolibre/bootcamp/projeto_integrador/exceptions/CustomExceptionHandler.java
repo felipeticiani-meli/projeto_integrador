@@ -84,6 +84,13 @@ public class CustomExceptionHandler {
                 .body(error);
     }
 
+    public ResponseEntity<CustomError> handleHeaderInvalidException(MethodArgumentTypeMismatchException exception) {
+        String error = "Header " + exception.getName() + " is invalid";
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new CustomError(error, error, LocalDateTime.now()));
+    }
+
     // Trata as exceções referente às validações (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomError> invalidFieldsHandler(MethodArgumentNotValidException exception) {
