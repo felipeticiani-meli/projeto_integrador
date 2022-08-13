@@ -40,8 +40,8 @@ class ProductControllerTest extends BaseControllerTest {
     public void setup() {
         warehouse = getSavedWarehouse();
         manager = getSavedManager();
-        section = getSavedSection(warehouse, manager);
-        product = getSavedProduct();
+        section = getSavedSection(warehouse, manager, Section.Category.FROZEN);
+        product = getSavedProduct(Section.Category.FROZEN);
         batches = getValidListBatchRequest(product);
         validInboundOrderRequest = getValidInboundOrderRequestDtoWithBatchList(section, batches);
         validInboundOrderRequest.getBatchStock().get(0).setBatchNumber(1);
