@@ -10,11 +10,8 @@ import com.mercadolibre.bootcamp.projeto_integrador.model.Batch;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Manager;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
-import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
 import com.mercadolibre.bootcamp.projeto_integrador.util.ManagerGenerator;
-import org.aspectj.weaver.ast.Not;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,10 +22,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,16 +37,16 @@ class BatchServiceTest {
     @Mock
     private IBatchRepository batchRepository;
     @Mock
-    private ISectionRepository sectionRepository;
+    private ISectionService sectionService;
     @Mock
-    private IManagerRepository managerRepository;
+    private IManagerService managerService;
 
     private List<Batch> batches;
     private Section section;
     private Manager manager;
 
     @BeforeEach
-    private void setup() {
+    void setup() {
         batches = BatchGenerator.newBatchList();
         section = batches.get(0).getInboundOrder().getSection();
         manager = section.getManager();
@@ -178,8 +175,8 @@ class BatchServiceTest {
         // Arrange
         batches.get(0).setCurrentQuantity(0);
         batches.get(1).setDueDate(LocalDate.now().plusDays(5));
-        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(sectionService.findById(ArgumentMatchers.anyLong())).thenReturn(section);
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
         when((batchRepository.findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any()))).thenReturn(batches);
 
@@ -203,15 +200,15 @@ class BatchServiceTest {
     @Test
     void findBatchBySection_returnNotFoundException_whenInvalidSection() {
         // Arrange
-        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(sectionService.findById(ArgumentMatchers.anyLong())).thenThrow(new NotFoundException("section"));
 
         // Act
         NotFoundException exception = assertThrows(NotFoundException.class,
                 () -> service.findBatchBySection(section.getSectionCode(), 15, manager.getManagerId()));
 
         // Assert
-        assertThat(exception.getName()).contains("section");
-        assertThat(exception.getMessage()).contains("There is no section with the specified id");
+        assertThat(exception.getName()).containsIgnoringCase("section");
+        assertThat(exception.getMessage()).containsIgnoringCase("There is no section with the specified id");
         verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any());
     }
@@ -220,8 +217,8 @@ class BatchServiceTest {
     void findBatchBySection_returnEmptyList_whenBatchesNotExistsForParameters() {
         // Arrange
         batches.clear();
-        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(sectionService.findById(ArgumentMatchers.anyLong())).thenReturn(section);
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
         when((batchRepository.findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any()))).thenReturn(batches);
 
@@ -235,8 +232,8 @@ class BatchServiceTest {
     @Test
     void findBatchBySection_returnNotFoundException_whenInvalidManager() {
         // Arrange
-        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(sectionService.findById(ArgumentMatchers.anyLong())).thenReturn(section);
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenThrow(new ManagerNotFoundException(manager.getManagerId()));
 
         // Act
         ManagerNotFoundException exception = assertThrows(ManagerNotFoundException.class,
@@ -254,8 +251,8 @@ class BatchServiceTest {
         // Arrange
         Manager unauthorizedManager = ManagerGenerator.newManager();
         unauthorizedManager.setManagerId(5);
-        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(section));
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(unauthorizedManager));
+        when(sectionService.findById(ArgumentMatchers.anyLong())).thenReturn(section);
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(unauthorizedManager);
 
         // Act
         UnauthorizedManagerException exception = assertThrows(UnauthorizedManagerException.class,
@@ -286,7 +283,7 @@ class BatchServiceTest {
         // Arrange
         batches.get(0).setCurrentQuantity(0);
         batches.get(1).setDueDate(LocalDate.now().plusDays(5));
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
         when(batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(batches);
 
@@ -315,7 +312,7 @@ class BatchServiceTest {
         batches.get(0).setCurrentQuantity(0);
         batches.get(1).setDueDate(LocalDate.now().plusDays(8));
         manager.setManagerId(1);
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
         when(batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateDesc(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(batches);
 
@@ -341,7 +338,7 @@ class BatchServiceTest {
     void findBatchByCategoryAndDueDate_returnEmptyList_whenBatchesNotExistsForParameters() {
         // Arrange
         batches.clear();
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
         when(batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(batches);
 
@@ -356,7 +353,7 @@ class BatchServiceTest {
     @Test
     void findBatchByCategoryAndDueDate_returnNotFoundException_whenInvalidManager() {
         // Arrange
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenThrow(new ManagerNotFoundException(manager.getManagerId()));
 
         // Act
         ManagerNotFoundException exception = assertThrows(ManagerNotFoundException.class,
@@ -372,7 +369,7 @@ class BatchServiceTest {
     @Test
     void findBatchByCategoryAndDueDate_returnBadRequestException_whenInvalidNumberOfDays() {
         // Arrange
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
 
         // Act
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -388,7 +385,7 @@ class BatchServiceTest {
     @Test
     void findBatchByCategoryAndDueDate_returnBadRequestException_whenInvalidOrder() {
         // Arrange
-        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(managerService.findById(ArgumentMatchers.anyLong())).thenReturn(manager);
 
         // Act
         BadRequestException exception = assertThrows(BadRequestException.class,
