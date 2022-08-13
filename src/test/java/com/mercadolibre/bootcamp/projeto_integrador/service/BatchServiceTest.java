@@ -368,4 +368,20 @@ class BatchServiceTest {
         verify(batchRepository, never()).findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
                 ArgumentMatchers.any(), ArgumentMatchers.any());
     }
+
+    @Test
+    void findBatchByCategoryAndDueDate_returnBadRequestException_whenInvalidNumberOfDays() {
+        // Arrange
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> service.findBatchByCategoryAndDueDate("FS", -1, "ASC", manager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains("Bad request");
+        assertThat(exception.getMessage()).contains("The number of days to expiration can't be negative");
+        verify(batchRepository, never()).findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
+    }
 }
