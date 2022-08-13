@@ -307,4 +307,33 @@ class BatchServiceTest {
         assertThat(returnedBatches.get(1).getDueDate()).isBefore(LocalDate.now().plusDays(16));
         assertThat(returnedBatches.get(0).getDueDate()).isBefore(returnedBatches.get(1).getDueDate());
     }
+
+    @Test
+    void findBatchByCategoryAndDueDate_returnChilledBatchesDescOrder_whenBatchesExists() {
+        // Arrange
+        batches = BatchGenerator.newBatchListChilled();
+        batches.get(0).setCurrentQuantity(0);
+        batches.get(1).setDueDate(LocalDate.now().plusDays(8));
+        manager.setManagerId(1);
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateDesc(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(batches);
+
+        // Act
+        List<BatchDueDateResponseDto> returnedBatches = service.findBatchByCategoryAndDueDate("RF", 15,
+                "DESC", manager.getManagerId());
+
+        // Assert
+        assertThat(returnedBatches).isNotEmpty();
+        assertEquals(returnedBatches.size(), 2);
+        assertEquals(returnedBatches.get(0).getBatchNumber(), batches.get(1).getBatchNumber());
+        assertEquals(returnedBatches.get(1).getBatchNumber(), batches.get(2).getBatchNumber());
+        assertEquals(returnedBatches.get(0).getProductName(), batches.get(1).getProduct().getProductName());
+        assertEquals(returnedBatches.get(1).getProductName(), batches.get(2).getProduct().getProductName());
+        assertThat(returnedBatches.get(0).getCurrentQuantity()).isPositive();
+        assertThat(returnedBatches.get(1).getCurrentQuantity()).isPositive();
+        assertThat(returnedBatches.get(0).getDueDate()).isBefore(LocalDate.now().plusDays(16));
+        assertThat(returnedBatches.get(1).getDueDate()).isBefore(LocalDate.now().plusDays(16));
+        assertThat(returnedBatches.get(0).getDueDate()).isAfter(returnedBatches.get(1).getDueDate());
+    }
 }
