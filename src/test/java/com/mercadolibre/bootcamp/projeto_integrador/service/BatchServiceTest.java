@@ -11,6 +11,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.repository.IBatchRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.IManagerRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.ISectionRepository;
 import com.mercadolibre.bootcamp.projeto_integrador.util.BatchGenerator;
+import org.aspectj.weaver.ast.Not;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BatchServiceTest {
@@ -194,5 +195,21 @@ class BatchServiceTest {
         assertThat(returnedBatches.get(0).getDueDate()).isBefore(LocalDate.now().plusDays(16));
         assertThat(returnedBatches.get(1).getDueDate()).isBefore(LocalDate.now().plusDays(16));
         assertThat(returnedBatches.get(0).getDueDate()).isBefore(returnedBatches.get(1).getDueDate());
+    }
+
+    @Test
+    void findBatchBySection_returnNotFoundException_whenInvalidSection() {
+        // Arrange
+        when(sectionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> service.findBatchBySection(section.getSectionCode(), 15, manager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains("section");
+        assertThat(exception.getMessage()).contains("There is no section with the specified id");
+        verify(batchRepository, never()).findByInboundOrder_SectionAndDueDateBetweenOrderByDueDate(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
     }
 }
