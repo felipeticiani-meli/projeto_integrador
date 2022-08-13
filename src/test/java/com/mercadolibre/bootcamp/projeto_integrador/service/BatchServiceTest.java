@@ -352,4 +352,20 @@ class BatchServiceTest {
         // Assert
         assertThat(returnedBatches).isEmpty();
     }
+
+    @Test
+    void findBatchByCategoryAndDueDate_returnNotFoundException_whenInvalidManager() {
+        // Arrange
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+
+        // Act
+        ManagerNotFoundException exception = assertThrows(ManagerNotFoundException.class,
+                () -> service.findBatchByCategoryAndDueDate("FS", 15, "ASC", manager.getManagerId()));
+
+        // Assert
+        assertThat(exception.getName()).contains("Manager not found");
+        assertThat(exception.getMessage()).contains("Manager with id " + manager.getManagerId() + " not found");
+        verify(batchRepository, never()).findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any());
+    }
 }
