@@ -336,4 +336,20 @@ class BatchServiceTest {
         assertThat(returnedBatches.get(1).getDueDate()).isBefore(LocalDate.now().plusDays(16));
         assertThat(returnedBatches.get(0).getDueDate()).isAfter(returnedBatches.get(1).getDueDate());
     }
+
+    @Test
+    void findBatchByCategoryAndDueDate_returnEmptyList_whenBatchesNotExistsForParameters() {
+        // Arrange
+        batches.clear();
+        when(managerRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(manager));
+        when(batchRepository.findByProduct_CategoryAndDueDateBetweenOrderByDueDateAsc(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(batches);
+
+        // Act
+        List<BatchDueDateResponseDto> returnedBatches = service.findBatchByCategoryAndDueDate("FS", 15,
+                "ASC", manager.getManagerId());
+
+        // Assert
+        assertThat(returnedBatches).isEmpty();
+    }
 }
