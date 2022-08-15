@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class BatchPurchaseOrder {
 
     @ManyToOne
     @JoinColumn(name="purchase_id_purchase_id")
+    @JsonIgnore
     private PurchaseOrder purchaseOrder;
 
     @ManyToOne

@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.controller;
 
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchBuyerResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderResponseDto;
@@ -11,7 +12,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -40,5 +40,11 @@ public class PurchaseOrderController {
                                                           @RequestBody BatchPurchaseOrderRequestDto batchDto) {
         service.dropProducts(purchaseOrderId, batchDto, buyerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/fresh-products/orders")
+    public ResponseEntity<List<BatchBuyerResponseDto>> getProductsPurchaseOrder(@RequestHeader("Buyer-Id") long buyerId,
+                                                                                @RequestParam long purchaseOrderId) {
+        return ResponseEntity.ok(service.getBatches(buyerId, purchaseOrderId));
     }
 }

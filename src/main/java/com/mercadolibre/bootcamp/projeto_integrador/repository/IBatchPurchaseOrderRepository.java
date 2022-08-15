@@ -6,6 +6,7 @@ import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.model.PurchaseOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IBatchPurchaseOrderRepository extends JpaRepository<BatchPurchaseOrder, Long> {
