@@ -676,7 +676,13 @@
 					"name": "Get invalid product sum on warehouse",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{base}}/fresh-products/warehouse?productId=90",
 							"host": [
