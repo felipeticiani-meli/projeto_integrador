@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "39ffb40c-a022-4582-9b8f-199b14ff2a58",
+		"_postman_id": "e1e9a288-8268-4010-b569-4b8be51f16e7",
 		"name": "Projeto integrador",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22711155"
 	},
 	"item": [
 		{
@@ -21,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"sectionCode\": 3,\n    \"batchStock\": [\n        {\n            \"productId\": 1,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        }\n    ]\n}",
+							"raw": "{\n    \"sectionCode\": 3,\n    \"batchStock\": [\n        {\n            \"productId\": 1,\n            \"currentTemperature\": 18.7,\n            \"minimumTemperature\": 10.0,\n            \"initialQuantity\": 4,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 10.99\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1001,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-08-2024\",\n            \"productPrice\": 7.50\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 57,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-06-2023\",\n            \"productPrice\": 7.50\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 12,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-09-2023\",\n            \"productPrice\": 7.50\n        },\n        {\n            \"productId\": 2,\n            \"currentTemperature\": 10.1,\n            \"minimumTemperature\": 7.8,\n            \"initialQuantity\": 1059,\n            \"manufacturingDate\": \"25-07-2022\",\n            \"manufacturingTime\": \"25-07-2022 14:23:54\",\n            \"dueDate\": \"20-11-2022\",\n            \"productPrice\": 7.50\n        }\n\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -81,39 +82,16 @@
 					"response": []
 				},
 				{
-					"name": "Get all batches",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"api",
-								"v1",
-								"fresh-products"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get all batches by category",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products?category=RF",
+							"raw": "{{base}}/fresh-products?category=RF",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products"
 							],
 							"query": [
@@ -130,23 +108,26 @@
 					"name": "Get product sum on warehouse",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Manager-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/warehouse?productId=7",
+							"raw": "{{base}}/fresh-products/warehouse?productId=2",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"warehouse"
 							],
 							"query": [
 								{
 									"key": "productId",
-									"value": "7"
+									"value": "2"
 								}
 							]
 						}
@@ -165,14 +146,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2",
+							"raw": "{{base}}/fresh-products/list?productId=2",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
@@ -198,14 +176,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=l",
+							"raw": "{{base}}/fresh-products/list?productId=2&orderBy=l",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
@@ -235,14 +210,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=v",
+							"raw": "{{base}}/fresh-products/list?productId=2&orderBy=v",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
@@ -272,14 +244,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=q",
+							"raw": "{{base}}/fresh-products/list?productId=2&orderBy=q",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
@@ -355,9 +324,9 @@
 					"response": []
 				},
 				{
-					"name": "Update purchase",
+					"name": "Get products from purchase",
 					"request": {
-						"method": "PUT",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Buyer-Id",
@@ -424,9 +393,9 @@
 					"response": []
 				},
 				{
-					"name": "Get products from purchase",
+					"name": "Update purchase",
 					"request": {
-						"method": "GET",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Buyer-Id",
@@ -473,14 +442,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"raw": "{{base}}/fresh-products/inboundorder?orderNumber=1",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							],
@@ -509,14 +475,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"raw": "{{base}}/fresh-products/inboundorder?orderNumber=1",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							],
@@ -545,14 +508,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder?orderNumber=1",
+							"raw": "{{base}}/fresh-products/inboundorder?orderNumber=1",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							],
@@ -588,14 +548,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"raw": "{{base}}/fresh-products/inboundorder",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							]
@@ -624,14 +581,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"raw": "{{base}}/fresh-products/inboundorder",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							]
@@ -660,14 +614,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/inboundorder",
+							"raw": "{{base}}/fresh-products/inboundorder",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"inboundorder"
 							]
@@ -681,14 +632,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products?category=ab",
+							"raw": "{{base}}/fresh-products?category=ab",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products"
 							],
 							"query": [
@@ -707,14 +655,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products?category=FS",
+							"raw": "{{base}}/fresh-products?category=FS",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products"
 							],
 							"query": [
@@ -733,14 +678,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/warehouse?productId=90",
+							"raw": "{{base}}/fresh-products/warehouse?productId=90",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"warehouse"
 							],
@@ -766,14 +708,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=1",
+							"raw": "{{base}}/fresh-products/list?productId=1",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
@@ -799,14 +738,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/v1/fresh-products/list?productId=2&orderBy=ab",
+							"raw": "{{base}}/fresh-products/list?productId=2&orderBy=ab",
 							"host": [
-								"localhost"
+								"{{base}}"
 							],
-							"port": "8080",
 							"path": [
-								"api",
-								"v1",
 								"fresh-products",
 								"list"
 							],
