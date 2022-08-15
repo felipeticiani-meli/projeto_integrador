@@ -3,6 +3,7 @@ package com.mercadolibre.bootcamp.projeto_integrador.dto;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

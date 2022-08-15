@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
