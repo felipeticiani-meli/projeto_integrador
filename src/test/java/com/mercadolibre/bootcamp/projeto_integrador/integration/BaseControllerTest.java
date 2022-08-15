@@ -2,8 +2,10 @@ package com.mercadolibre.bootcamp.projeto_integrador.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchPurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.BatchRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.dto.InboundOrderRequestDto;
+import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
 import com.mercadolibre.bootcamp.projeto_integrador.model.*;
 import com.mercadolibre.bootcamp.projeto_integrador.repository.*;
 import com.mercadolibre.bootcamp.projeto_integrador.util.*;
@@ -35,6 +37,12 @@ public class BaseControllerTest {
     protected IBatchRepository batchRepository;
     @Autowired
     protected IInboundOrderRepository inboundOrderRepository;
+    @Autowired
+    protected IPurchaseOrderRepository purchaseOrderRepository;
+    @Autowired
+    protected IBatchPurchaseOrderRepository batchPurchaseOrderRepository;
+    @Autowired
+    protected IBuyerRepository buyerRepository;
 
     public BaseControllerTest() {
         objectMapper = new ObjectMapper();
@@ -46,6 +54,13 @@ public class BaseControllerTest {
         InboundOrderRequestDto requestDto = new InboundOrderRequestDto();
         requestDto.setBatchStock(List.of(batchRequest));
         requestDto.setSectionCode(section.getSectionCode());
+        return requestDto;
+    }
+
+    protected PurchaseOrderRequestDto getPurchaseOrderRequestDto(BatchPurchaseOrderRequestDto batchRequest) {
+        PurchaseOrderRequestDto requestDto = new PurchaseOrderRequestDto();
+        requestDto.setOrderStatus("Opened");
+        requestDto.setBatch(batchRequest);
         return requestDto;
     }
 
@@ -68,6 +83,10 @@ public class BaseControllerTest {
         BatchRequestDto batchRequest = BatchGenerator.newBatchRequestDTO();
         batchRequest.setProductId(product.getProductId());
         return batchRequest;
+    }
+
+    protected BatchPurchaseOrderRequestDto getValidBatchPurchaseOrderRequestDto(Batch batch) {
+        return BatchPurchaseOrderGenerator.newBatchPurchaseOrderRequestDto(batch.getBatchNumber());
     }
 
     protected Batch getSavedBatch(BatchRequestDto batchRequest, InboundOrder inboundOrder) {
@@ -123,6 +142,12 @@ public class BaseControllerTest {
         return manager;
     }
 
+    protected Buyer getSavedBuyer() {
+        Buyer buyer = BuyerGenerator.newBuyer();
+        buyerRepository.save(buyer);
+        return buyer;
+    }
+
     protected InboundOrder getSavedInboundOrder(Section section) {
         InboundOrder inboundOrder = new InboundOrder();
         inboundOrder.setOrderDate(LocalDate.now());
@@ -132,6 +157,12 @@ public class BaseControllerTest {
 
     protected Batch getSavedBatch(Product product, InboundOrder order) {
         Batch batch = BatchGenerator.newBatch(product, order);
+        batchRepository.save(batch);
+        return batch;
+    }
+
+    protected Batch getSavedValidBatch(Product product, InboundOrder order) {
+        Batch batch = BatchGenerator.newValidBatch(product, order);
         batchRepository.save(batch);
         return batch;
     }

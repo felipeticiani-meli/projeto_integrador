@@ -5,12 +5,14 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BatchPurchaseOrderRequestDto {
 
     @NotNull(message = "O id do batch não pode estar vazio")
