@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.mercadolibre.bootcamp</groupId>
     <artifactId>projeto_integrador</artifactId>
-    <version>0.1.0</version>
+    <version>0.4.0</version>
     <name>projeto_integrador</name>
     <description>Projeto integrador do Bootcamp JAVA Wave 6</description>
     <properties>

@@ -1,5 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.util;
 
+import com.mercadolibre.bootcamp.projeto_integrador.dto.ProductResponseDto;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Product;
 import com.mercadolibre.bootcamp.projeto_integrador.model.Section;
 
@@ -26,5 +27,10 @@ public class ProductsGenerator {
                 .brand("Frooty")
                 .category(Section.Category.FROZEN)
                 .build();
+    }
+
+    public static ProductResponseDto newProductResponseDto() {
+        ProductResponseDto product = new ProductResponseDto(1, WarehouseGenerator.newListWarehouseResponseDto());
+        return product;
     }
 }

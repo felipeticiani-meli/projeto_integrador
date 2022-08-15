@@ -36,7 +36,7 @@ public class BatchGenerator {
                 .initialQuantity(50)
                 .manufacturingDate(LocalDate.now().minusDays(2))
                 .manufacturingTime(LocalDateTime.now().minusDays(2))
-                .dueDate(LocalDate.now().plusWeeks(3))
+                .dueDate(LocalDate.now().plusWeeks(8))
                 .productPrice(new BigDecimal("5.9"))
                 .build()
         );
@@ -123,6 +123,7 @@ public class BatchGenerator {
                 .build());
         batches.get(2).getInboundOrder().getSection().setSectionCode(2);
         batches.get(2).getInboundOrder().getSection().getManager().setManagerId(2);
+        batches.get(2).getInboundOrder().getSection().getWarehouse().setWarehouseCode(2);
         return batches;
     }
 

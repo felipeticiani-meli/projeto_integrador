@@ -1,6 +1,6 @@
 package com.mercadolibre.bootcamp.projeto_integrador.model;
 
-import com.mercadolibre.bootcamp.projeto_integrador.dto.PurchaseOrderRequestDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,10 +18,10 @@ public class PurchaseOrder {
     private String orderStatus;
     @ManyToOne
     @JoinColumn(name="buyer_id", nullable = false)
+    @JsonIgnore
     private Buyer buyer;
 
     @OneToMany(mappedBy = "purchaseOrder")
     private List<BatchPurchaseOrder> batchPurchaseOrders;
     
 }
-// request.getBuyerId().getBuyerId();
