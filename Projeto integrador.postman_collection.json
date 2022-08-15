@@ -422,6 +422,36 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get products from purchase",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1127,6 +1157,66 @@
 								}
 							}
 						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get products from purchase with invalid buyer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get products from purchase when buyer not exists",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "500",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
 							"host": [
