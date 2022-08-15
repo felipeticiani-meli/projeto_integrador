@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5e71c63b-ee36-458b-9da1-1c7c707d9e89",
+		"_postman_id": "39ffb40c-a022-4582-9b8f-199b14ff2a58",
 		"name": "Projeto integrador",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -793,6 +793,358 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Insert purchase without BuyerId",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"orderStatus\": \"Opened\",\n    \"batch\": {\n        \"batchNumber\": 1,\n        \"quantity\": 2\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insert purchase with inexistent BuyerId",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "500",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"orderStatus\": \"Opened\",\n    \"batch\": {\n        \"batchNumber\": 1,\n        \"quantity\": 2\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update purchase not exists",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=500",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "500"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update purchase already closed",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update purchase unauthorized buyer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase with invalid batch id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 100\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase that not exists",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=500",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "500"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase already closed",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase with unauthorized buyer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product from purchase when product is not in purchase",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Buyer-Id",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchNumber\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base}}/fresh-products/orders?purchaseOrderId=1",
+							"host": [
+								"{{base}}"
+							],
+							"path": [
+								"fresh-products",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "purchaseOrderId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
@@ -820,7 +1172,7 @@
 	"variable": [
 		{
 			"key": "base",
-			"value": "localhost:8080/api/v1"
+			"value": "http://localhost:8080/api/v1"
 		}
 	]
 }
