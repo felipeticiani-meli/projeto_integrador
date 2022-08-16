@@ -23,12 +23,12 @@ API REST desenvolvida pelo grupo Beta Campers para o Projeto Integrador feito du
 
 # Sumário
 
-- [Funcionalidades](#funcionalidades)
 - <a href="https://app.diagrams.net/#G1X_05jbEF7Yt2yFOZ2y3OfKW_KCPjm5MC">Diagrama UML </a>
 - [DER](SQL%20Model.png)
 - [Postman collection](Projeto%20integrador.postman_collection.json)
-- [Inbound](#inboundOrder)
-- [Purchase](#purchase)
+- [Funcionalidades](#funcionalidades)
+  - [Inbound](#inboundOrder)
+  - [Purchase](#purchase)
 
 # Funcionalidades
 
